@@ -351,14 +351,13 @@ func CreatePurchase(
 	}
 
 	res.Data = map[string]interface{}{
-		"purchase_id":      getIdLast,
-		"supplier_id":      supplierID,
-		"purchase_date":    purchaseDate,
-		"total_item":       totalItem,
-		"total_price":      totalPrice,
-		"created_at":       created_at,
-		"updated_at":       updated_at,
-		"purchases_detail": purchasesDetail,
+		"purchase_id":   getIdLast,
+		"supplier_id":   supplierID,
+		"purchase_date": purchaseDate,
+		"total_item":    totalItem,
+		"total_price":   totalPrice,
+		"created_at":    created_at,
+		"updated_at":    updated_at,
 	}
 
 	return res, nil

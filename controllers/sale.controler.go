@@ -103,7 +103,7 @@ func CreateSale(c echo.Context) error {
 		createRequest.SaleDate,
 		createRequest.TotalItem,
 		createRequest.TotalPrice,
-		createRequest.SaleDetails,
+		createRequest.SalesDetail,
 	)
 
 	if err != nil {

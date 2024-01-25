@@ -31,7 +31,7 @@ type CreateSaleRequest struct {
 	SaleDate    time.Time    `json:"sale_date"`
 	TotalItem   int          `json:"total_item"`
 	TotalPrice  int          `json:"total_price"`
-	SaleDetails []SaleDetail `json:"sale_details"`
+	SalesDetail []SaleDetail `json:"sales_detail"`
 }
 
 func GetAllSales(typeName string, page, pageSize int) (Response, error) {
@@ -277,7 +277,7 @@ func CreateSale(
 	saleDate time.Time,
 	totalItem int,
 	totalPrice int,
-	saleDetails []SaleDetail,
+	salesDetail []SaleDetail,
 ) (Response, error) {
 	var res Response
 
@@ -319,7 +319,7 @@ func CreateSale(
 	}
 
 	// Insert purchase details
-	for _, detail := range saleDetails {
+	for _, detail := range salesDetail {
 		// Assuming purchase_id is obtained from the created purchase
 		sqlDetailStatement := "INSERT INTO sale_detail (sale_id, product_id, sale_price, quantity, subtotal, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
 		detailStmt, err := con.Prepare(sqlDetailStatement)
@@ -346,13 +346,12 @@ func CreateSale(
 	}
 
 	res.Data = map[string]interface{}{
-		"sale_id":      getIdLast,
-		"sale_date":    saleDate,
-		"total_item":   totalItem,
-		"total_price":  totalPrice,
-		"created_at":   created_at,
-		"updated_at":   updated_at,
-		"sale_details": saleDetails,
+		"sale_id":     getIdLast,
+		"sale_date":   saleDate,
+		"total_item":  totalItem,
+		"total_price": totalPrice,
+		"created_at":  created_at,
+		"updated_at":  updated_at,
 	}
 
 	return res, nil
