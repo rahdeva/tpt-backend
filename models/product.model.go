@@ -132,39 +132,62 @@ func GetProductDetail(productID int) (Response, error) {
 	return res, nil
 }
 
-// func CreateProduct(kode_barang string, nama_barang string) (Response, error) {
-// 	var res Response
+func CreateProduct(
+	product_code string,
+	product_name string,
+	category_id int,
+	brand string,
+	purchase_price int,
+	sale_price int,
+	stock int,
+	sold int,
+	image string,
+) (Response, error) {
+	var res Response
 
-// 	con := db.CreateCon()
+	con := db.CreateCon()
 
-// 	sqlStatement := "INSERT INTO barang (kode_barang, nama_barang) VALUES(? , ? )"
+	sqlStatement := "INSERT INTO product (product_code, product_name, category_id, brand, purchase_price, sale_price, stock, sold, image, created_at, updated_at) VALUES ( ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? )"
 
-// 	stmt, err := con.Prepare(sqlStatement)
+	stmt, err := con.Prepare(sqlStatement)
 
-// 	if err != nil {
-// 		return res, err
-// 	}
+	if err != nil {
+		return res, err
+	}
 
-// 	result, err := stmt.Exec(kode_barang, nama_barang)
+	created_at := time.Now()
+	updated_at := time.Now()
 
-// 	if err != nil {
-// 		return res, err
-// 	}
+	result, err := stmt.Exec(
+		product_code,
+		product_name,
+		category_id,
+		brand,
+		purchase_price,
+		sale_price,
+		stock,
+		sold,
+		image,
+		created_at,
+		updated_at,
+	)
 
-// 	getIdLast, err := result.LastInsertId()
+	if err != nil {
+		return res, err
+	}
 
-// 	if err != nil {
-// 		return res, err
-// 	}
+	getIdLast, err := result.LastInsertId()
 
-// 	res.Status = http.StatusOK
-// 	res.Message = "Sukses"
-// 	res.Data = map[string]int64{
-// 		"getIdLast": getIdLast,
-// 	}
+	if err != nil {
+		return res, err
+	}
 
-// 	return res, nil
-// }
+	res.Data = map[string]interface{}{
+		"getIdLast": getIdLast,
+	}
+
+	return res, nil
+}
 
 // func UpdateBarang(id int, kode_barang string, nama_barang string) (Response, error) {
 // 	var res Response

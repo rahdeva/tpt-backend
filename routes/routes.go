@@ -14,11 +14,11 @@ func Init() *echo.Echo {
 		return c.String(http.StatusOK, "Selamat Datang di Toko Perlengkapan Ternak API")
 	})
 
-	e.GET("/api/v1/product", controllers.GetAllProducts)
+	e.GET("/api/v1/products", controllers.GetAllProducts)
 
-	e.GET("/api/v1/product/:product_id", controllers.GetProductDetail)
+	e.GET("/api/v1/products/:product_id", controllers.GetProductDetail)
 
-	// e.POST("/api/v1/barang", controllers.CreateBarangNew)
+	e.POST("/api/v1/products", controllers.CreateProduct)
 
 	// e.PUT("/api/v1/barang", controllers.UpdateBarangNew)
 

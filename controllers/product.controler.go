@@ -50,49 +50,43 @@ func GetProductDetail(c echo.Context) error {
 	return c.JSON(http.StatusOK, productDetail)
 }
 
-// func CreateBarang(c echo.Context) error {
-// 	kode_barang := c.FormValue("kode_barang")
-// 	nama_barang := c.FormValue("nama_barang")
+func CreateProduct(c echo.Context) error {
+	var product models.Product
 
-// 	fmt.Println(kode_barang)
-// 	fmt.Println(nama_barang)
+	// Parse the request body to populate the product struct
+	if err := c.Bind(&product); err != nil {
+		return c.JSON(
+			http.StatusBadRequest,
+			map[string]string{
+				"error": "Invalid request body",
+			},
+		)
+	}
 
-// 	result, err := models.CreateBarang(kode_barang, nama_barang)
+	// Call the CreateProduct function from the models package
+	result, err := models.CreateProduct(
+		product.ProductCode,
+		product.ProductName,
+		product.CategoryID,
+		product.Brand,
+		product.PurchasePrice,
+		product.SalePrice,
+		product.Stock,
+		product.Sold,
+		product.Image,
+	)
 
-// 	fmt.Println(result)
+	if err != nil {
+		return c.JSON(
+			http.StatusInternalServerError,
+			map[string]string{
+				"message": err.Error(),
+			},
+		)
+	}
 
-// 	if err != nil {
-// 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
-// 	}
-
-// 	return c.JSON(http.StatusOK, result)
-// }
-
-// func CreateBarangNew(c echo.Context) error {
-// 	json_map := make(map[string]interface{})
-// 	err := json.NewDecoder(c.Request().Body).Decode(&json_map)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	kode_barang, ok := json_map["kode_barang"].(string)
-// 	if !ok {
-// 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "Invalid kode_barang format"})
-// 	}
-
-// 	nama_barang, ok := json_map["nama_barang"].(string)
-// 	if !ok {
-// 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "Invalid nama_barang format"})
-// 	}
-
-// 	result, err := models.CreateBarang(kode_barang, nama_barang)
-
-// 	if err != nil {
-// 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
-// 	}
-
-// 	return c.JSON(http.StatusOK, result)
-// }
+	return c.JSON(http.StatusOK, result)
+}
 
 // func UpdateBarang(c echo.Context) error {
 // 	id := c.FormValue("id")
