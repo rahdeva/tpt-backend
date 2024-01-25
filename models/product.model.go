@@ -155,8 +155,14 @@ func CreateProduct(
 		return res, err
 	}
 
-	created_at := time.Now()
-	updated_at := time.Now()
+	// Load the UTC+8 time zone
+	loc, err := time.LoadLocation("Asia/Shanghai")
+	if err != nil {
+		return res, err
+	}
+
+	created_at := time.Now().In(loc)
+	updated_at := time.Now().In(loc)
 
 	result, err := stmt.Exec(
 		product_code,
@@ -183,76 +189,65 @@ func CreateProduct(
 	}
 
 	res.Data = map[string]interface{}{
-		"getIdLast": getIdLast,
+		"getIdLast":  getIdLast,
+		"created_at": created_at,
 	}
 
 	return res, nil
 }
 
-// func UpdateBarang(id int, kode_barang string, nama_barang string) (Response, error) {
-// 	var res Response
+func UpdateProduct(product_id int, updateFields map[string]interface{}) (Response, error) {
+	var res Response
 
-// 	con := db.CreateCon()
+	// Load the UTC+8 time zone
+	loc, err := time.LoadLocation("Asia/Shanghai")
+	if err != nil {
+		return res, err
+	}
 
-// 	sqlStatement := "UPDATE barang SET nama_barang = ? , kode_barang = ? WHERE id = ?"
+	// Add or update the 'updated_at' field in the updateFields map
+	updateFields["updated_at"] = time.Now().In(loc)
+	updated_at := updateFields["updated_at"]
 
-// 	stmt, err := con.Prepare(sqlStatement)
+	con := db.CreateCon()
 
-// 	if err != nil {
-// 		return res, err
-// 	}
+	// Construct the SET part of the SQL statement dynamically
+	setStatement := "SET "
+	values := []interface{}{}
+	i := 0
 
-// 	result, err := stmt.Exec(nama_barang, kode_barang, id)
+	for fieldName, fieldValue := range updateFields {
+		if i > 0 {
+			setStatement += ", "
+		}
+		setStatement += fieldName + " = ?"
+		values = append(values, fieldValue)
+		i++
+	}
 
-// 	if err != nil {
-// 		return res, err
-// 	}
+	// Construct the final SQL statement
+	sqlStatement := "UPDATE product " + setStatement + " WHERE product_id = ?"
+	values = append(values, product_id)
 
-// 	rowsAffected, err := result.RowsAffected()
+	stmt, err := con.Prepare(sqlStatement)
+	if err != nil {
+		return res, err
+	}
 
-// 	if err != nil {
-// 		return res, err
-// 	}
+	result, err := stmt.Exec(values...)
+	if err != nil {
+		return res, err
+	}
 
-// 	res.Status = http.StatusOK
-// 	res.Message = "Sukses"
-// 	res.Data = map[string]int64{
-// 		"rows": rowsAffected,
-// 	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return res, err
+	}
 
-// 	return res, nil
-// }
+	res.Data = map[string]interface{}{
+		"rowsAffected": rowsAffected,
+		"updated_at":   updated_at,
+	}
 
-// func DeleteBarang(id int) (Response, error) {
-// 	var res Response
-
-// 	con := db.CreateCon()
-
-// 	sqlStatement := "DELETE FROM barang WHERE id = ? "
-
-// 	stmt, err := con.Prepare(sqlStatement)
-
-// 	if err != nil {
-// 		return res, err
-// 	}
-
-// 	result, err := stmt.Exec(id)
-
-// 	if err != nil {
-// 		return res, err
-// 	}
-
-// 	rowsAffected, err := result.RowsAffected()
-
-// 	if err != nil {
-// 		return res, err
-// 	}
-
-// 	res.Status = http.StatusOK
-// 	res.Message = "Sukses"
-// 	res.Data = map[string]int64{
-// 		"rows": rowsAffected,
-// 	}
-
-// 	return res, err
-// }
+	return res, nil
+}

@@ -20,9 +20,9 @@ func Init() *echo.Echo {
 
 	e.POST("/api/v1/products", controllers.CreateProduct)
 
-	// e.PUT("/api/v1/barang", controllers.UpdateBarangNew)
+	e.PUT("/api/v1/products", controllers.UpdateProduct)
 
-	// e.DELETE("/api/v1/barang/:id", controllers.DeleteBarang)
+	e.DELETE("/api/v1/products/:product_id", controllers.DeleteProduct)
 
 	return e
 }

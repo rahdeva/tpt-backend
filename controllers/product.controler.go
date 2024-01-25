@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 	"tpt_backend/models"
@@ -23,13 +24,10 @@ func GetAllProducts(c echo.Context) error {
 	typeName := "product" // Set the type name based on your struct
 
 	result, err := models.GetAllProducts(typeName, page, pageSize)
-
 	if err != nil {
 		return c.JSON(
 			http.StatusInternalServerError,
-			map[string]string{
-				"message": err.Error(),
-			},
+			map[string]string{"message": err.Error()},
 		)
 	}
 
@@ -44,7 +42,10 @@ func GetProductDetail(c echo.Context) error {
 
 	productDetail, err := models.GetProductDetail(productID)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return c.JSON(
+			http.StatusInternalServerError,
+			map[string]string{"message": err.Error()},
+		)
 	}
 
 	return c.JSON(http.StatusOK, productDetail)
@@ -79,82 +80,69 @@ func CreateProduct(c echo.Context) error {
 	if err != nil {
 		return c.JSON(
 			http.StatusInternalServerError,
-			map[string]string{
-				"message": err.Error(),
-			},
+			map[string]string{"message": err.Error()},
 		)
 	}
 
 	return c.JSON(http.StatusOK, result)
 }
 
-// func UpdateBarang(c echo.Context) error {
-// 	id := c.FormValue("id")
-// 	kode_barang := c.FormValue("kode_barang")
-// 	nama_barang := c.FormValue("nama_barang")
+func UpdateProduct(c echo.Context) error {
+	// Parse the request body to get the update data
+	var updateFields map[string]interface{}
+	if err := json.NewDecoder(c.Request().Body).Decode(&updateFields); err != nil {
+		return c.JSON(
+			http.StatusBadRequest,
+			map[string]string{"message": "Invalid request body"},
+		)
+	}
 
-// 	conv_id, err := strconv.Atoi(id)
+	// Extract the ID from the update data
+	product_id, ok := updateFields["product_id"].(float64)
+	if !ok {
+		return c.JSON(
+			http.StatusBadRequest,
+			map[string]string{"message": "Invalid product_id format"},
+		)
+	}
 
-// 	if err != nil {
-// 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
-// 	}
+	// Convert id to integer
+	convID := int(product_id)
 
-// 	result, err := models.UpdateBarang(conv_id, kode_barang, nama_barang)
+	// Remove id from the updateFields map before passing it to the model
+	delete(updateFields, "product_id")
 
-// 	if err != nil {
-// 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
-// 	}
+	// Call the UpdateProduct function from the models package
+	result, err := models.UpdateProduct(convID, updateFields)
+	if err != nil {
+		return c.JSON(
+			http.StatusInternalServerError,
+			map[string]string{"message": err.Error()},
+		)
+	}
 
-// 	return c.JSON(http.StatusOK, result)
-// }
+	return c.JSON(http.StatusOK, result)
+}
 
-// func UpdateBarangNew(c echo.Context) error {
-// 	json_map := make(map[string]interface{})
-// 	err := json.NewDecoder(c.Request().Body).Decode(&json_map)
-// 	if err != nil {
-// 		return err
-// 	}
+func DeleteProduct(c echo.Context) error {
+	product_id := c.Param("product_id")
 
-// 	id, ok := json_map["id"].(float64)
-// 	if !ok {
-// 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "Invalid id format"})
-// 	}
+	conv_id, err := strconv.Atoi(product_id)
 
-// 	kode_barang, ok := json_map["kode_barang"].(string)
-// 	if !ok {
-// 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "Invalid kode_barang format"})
-// 	}
+	if err != nil {
+		return c.JSON(
+			http.StatusInternalServerError,
+			map[string]string{"message": err.Error()},
+		)
+	}
 
-// 	nama_barang, ok := json_map["nama_barang"].(string)
-// 	if !ok {
-// 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "Invalid nama_barang format"})
-// 	}
+	result, err := models.DeleteProduct(conv_id)
+	if err != nil {
+		return c.JSON(
+			http.StatusInternalServerError,
+			map[string]string{"message": err.Error()},
+		)
+	}
 
-// 	// Convert id to integer
-// 	conv_id := int(id)
-
-// 	result, err := models.UpdateBarang(conv_id, kode_barang, nama_barang)
-// 	if err != nil {
-// 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
-// 	}
-
-// 	return c.JSON(http.StatusOK, result)
-// }
-
-// func DeleteBarang(c echo.Context) error {
-// 	id := c.Param("id")
-
-// 	conv_id, err := strconv.Atoi(id)
-
-// 	if err != nil {
-// 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
-// 	}
-
-// 	result, err := models.DeleteBarang(conv_id)
-
-// 	if err != nil {
-// 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
-// 	}
-
-// 	return c.JSON(http.StatusOK, result)
-// }
+	return c.JSON(http.StatusOK, result)
+}
