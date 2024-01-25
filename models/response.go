@@ -24,6 +24,8 @@ func ResponseData(typeName string) interface{} {
 		return &Product{}
 	case "category":
 		return &Category{}
+	case "supplier":
+		return &Supplier{}
 	default:
 		return nil
 	}
