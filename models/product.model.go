@@ -41,6 +41,12 @@ func GetAllProducts(typeName string, page, pageSize int) (Response, error) {
 		return res, err
 	}
 
+	// Load the UTC+8 time zone
+	loc, err := time.LoadLocation("Asia/Shanghai")
+	if err != nil {
+		return res, err
+	}
+
 	// Calculate the total number of pages
 	totalPages := calculateTotalPages(totalItems, pageSize)
 
@@ -74,6 +80,22 @@ func GetAllProducts(typeName string, page, pageSize int) (Response, error) {
 		err := rows.Scan(fields...)
 		if err != nil {
 			return res, err
+		}
+
+		// Convert time fields to UTC+8 (Asia/Shanghai) before including them in the response
+		createdAtField, _ := objValue.Type().FieldByName("CreatedAt")
+		updatedAtField, _ := objValue.Type().FieldByName("UpdatedAt")
+
+		if createdAtField.Type == reflect.TypeOf(time.Time{}) {
+			createdAtFieldIndex := createdAtField.Index[0]
+			createdAtValue := objValue.Field(createdAtFieldIndex).Interface().(time.Time)
+			objValue.Field(createdAtFieldIndex).Set(reflect.ValueOf(createdAtValue.In(loc)))
+		}
+
+		if updatedAtField.Type == reflect.TypeOf(time.Time{}) {
+			updatedAtFieldIndex := updatedAtField.Index[0]
+			updatedAtValue := objValue.Field(updatedAtFieldIndex).Interface().(time.Time)
+			objValue.Field(updatedAtFieldIndex).Set(reflect.ValueOf(updatedAtValue.In(loc)))
 		}
 
 		if !arrobj.IsValid() {
@@ -124,6 +146,16 @@ func GetProductDetail(productID int) (Response, error) {
 	if err != nil {
 		return res, err
 	}
+
+	// Load the UTC+8 time zone
+	loc, err := time.LoadLocation("Asia/Shanghai")
+	if err != nil {
+		return res, err
+	}
+
+	// Convert time fields to UTC+8 (Asia/Shanghai) before including them in the response
+	product.CreatedAt = product.CreatedAt.In(loc)
+	product.UpdatedAt = product.UpdatedAt.In(loc)
 
 	res.Data = map[string]interface{}{
 		"product": product,
