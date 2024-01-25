@@ -9,7 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func GetAllSuppliers(c echo.Context) error {
+func GetAllRoles(c echo.Context) error {
 	// Get query parameters for pagination
 	page, err := strconv.Atoi(c.QueryParam("page"))
 	if err != nil || page < 1 {
@@ -21,9 +21,9 @@ func GetAllSuppliers(c echo.Context) error {
 		pageSize = 10
 	}
 
-	typeName := "supplier" // Set the type name based on your struct
+	typeName := "role" // Set the type name based on your struct
 
-	result, err := models.GetAllSuppliers(typeName, page, pageSize)
+	result, err := models.GetAllRoles(typeName, page, pageSize)
 	if err != nil {
 		return c.JSON(
 			http.StatusInternalServerError,
@@ -34,13 +34,13 @@ func GetAllSuppliers(c echo.Context) error {
 	return c.JSON(http.StatusOK, result)
 }
 
-func GetSupplierDetail(c echo.Context) error {
-	supplierID, err := strconv.Atoi(c.Param("supplier_id"))
+func GetRoleDetail(c echo.Context) error {
+	roleID, err := strconv.Atoi(c.Param("role_id"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid supplier_id"})
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid role_id"})
 	}
 
-	supplierDetail, err := models.GetSupplierDetail(supplierID)
+	roleDetail, err := models.GetRoleDetail(roleID)
 	if err != nil {
 		return c.JSON(
 			http.StatusInternalServerError,
@@ -48,14 +48,14 @@ func GetSupplierDetail(c echo.Context) error {
 		)
 	}
 
-	return c.JSON(http.StatusOK, supplierDetail)
+	return c.JSON(http.StatusOK, roleDetail)
 }
 
-func CreateSupplier(c echo.Context) error {
-	var supplier models.Supplier
+func CreateRole(c echo.Context) error {
+	var role models.Role
 
 	// Parse the request body to populate the product struct
-	if err := c.Bind(&supplier); err != nil {
+	if err := c.Bind(&role); err != nil {
 		return c.JSON(
 			http.StatusBadRequest,
 			map[string]string{
@@ -64,11 +64,9 @@ func CreateSupplier(c echo.Context) error {
 		)
 	}
 
-	// Call the CreateCategory function from the models package
-	result, err := models.CreateSupplier(
-		supplier.SupplierName,
-		supplier.PhoneNumber,
-		supplier.Address,
+	// Call the CreateRole function from the models package
+	result, err := models.CreateRole(
+		role.RoleName,
 	)
 
 	if err != nil {
@@ -81,7 +79,7 @@ func CreateSupplier(c echo.Context) error {
 	return c.JSON(http.StatusOK, result)
 }
 
-func UpdateSupplier(c echo.Context) error {
+func UpdateRole(c echo.Context) error {
 	// Parse the request body to get the update data
 	var updateFields map[string]interface{}
 	if err := json.NewDecoder(c.Request().Body).Decode(&updateFields); err != nil {
@@ -92,22 +90,22 @@ func UpdateSupplier(c echo.Context) error {
 	}
 
 	// Extract the ID from the update data
-	supplierID, ok := updateFields["supplier_id"].(float64)
+	roleID, ok := updateFields["role_id"].(float64)
 	if !ok {
 		return c.JSON(
 			http.StatusBadRequest,
-			map[string]string{"message": "Invalid supplier_id format"},
+			map[string]string{"message": "Invalid role_id format"},
 		)
 	}
 
 	// Convert id to integer
-	convID := int(supplierID)
+	convID := int(roleID)
 
 	// Remove id from the updateFields map before passing it to the model
-	delete(updateFields, "supplier_id")
+	delete(updateFields, "role_id")
 
 	// Call the UpdateCategory function from the models package
-	result, err := models.UpdateSupplier(convID, updateFields)
+	result, err := models.UpdateRole(convID, updateFields)
 	if err != nil {
 		return c.JSON(
 			http.StatusInternalServerError,
@@ -118,10 +116,10 @@ func UpdateSupplier(c echo.Context) error {
 	return c.JSON(http.StatusOK, result)
 }
 
-func DeleteSupplier(c echo.Context) error {
-	supplierID := c.Param("supplier_id")
+func DeleteRole(c echo.Context) error {
+	roleID := c.Param("role_id")
 
-	conv_id, err := strconv.Atoi(supplierID)
+	conv_id, err := strconv.Atoi(roleID)
 
 	if err != nil {
 		return c.JSON(
@@ -130,7 +128,7 @@ func DeleteSupplier(c echo.Context) error {
 		)
 	}
 
-	result, err := models.DeleteSupplier(conv_id)
+	result, err := models.DeleteRole(conv_id)
 	if err != nil {
 		return c.JSON(
 			http.StatusInternalServerError,

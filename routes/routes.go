@@ -35,5 +35,12 @@ func Init() *echo.Echo {
 	e.PUT("/api/v1/suppliers", controllers.UpdateSupplier)
 	e.DELETE("/api/v1/suppliers/:supplier_id", controllers.DeleteSupplier)
 
+	// Role
+	e.GET("/api/v1/roles", controllers.GetAllRoles)
+	e.GET("/api/v1/roles/:role_id", controllers.GetRoleDetail)
+	e.POST("/api/v1/roles", controllers.CreateRole)
+	e.PUT("/api/v1/roles", controllers.UpdateRole)
+	e.DELETE("/api/v1/roles/:role_id", controllers.DeleteRole)
+
 	return e
 }
