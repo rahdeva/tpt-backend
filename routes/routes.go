@@ -2,6 +2,7 @@ package routes
 
 import (
 	"net/http"
+	"tpt_backend/controllers"
 
 	"github.com/labstack/echo/v4"
 )
@@ -13,7 +14,7 @@ func Init() *echo.Echo {
 		return c.String(http.StatusOK, "Selamat Datang di Toko Perlengkapan Ternak API")
 	})
 
-	// e.GET("/api/v1/barang", controllers.DataBarang)
+	e.GET("/api/v1/product", controllers.GetAllProducts)
 
 	// e.POST("/api/v1/barang", controllers.CreateBarangNew)
 
