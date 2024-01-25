@@ -251,3 +251,35 @@ func UpdateProduct(product_id int, updateFields map[string]interface{}) (Respons
 
 	return res, nil
 }
+
+func DeleteProduct(product_id int) (Response, error) {
+	var res Response
+
+	con := db.CreateCon()
+
+	sqlStatement := "DELETE FROM product WHERE product_id = ?"
+
+	stmt, err := con.Prepare(sqlStatement)
+
+	if err != nil {
+		return res, err
+	}
+
+	result, err := stmt.Exec(product_id)
+
+	if err != nil {
+		return res, err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return res, err
+	}
+
+	res.Data = map[string]interface{}{
+		"rowsAffected":       rowsAffected,
+		"deleted_product_id": product_id,
+	}
+
+	return res, err
+}
