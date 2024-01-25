@@ -28,6 +28,8 @@ func ResponseData(typeName string) interface{} {
 		return &Supplier{}
 	case "role":
 		return &Role{}
+	case "user":
+		return &User{}
 	default:
 		return nil
 	}
