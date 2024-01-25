@@ -30,6 +30,8 @@ func ResponseData(typeName string) interface{} {
 		return &Role{}
 	case "user":
 		return &User{}
+	case "financial":
+		return &Financial{}
 	default:
 		return nil
 	}

@@ -14,7 +14,7 @@ func Init() *echo.Echo {
 		return c.String(http.StatusOK, "Selamat Datang di Toko Perlengkapan Ternak API")
 	})
 
-	// Products
+	// Product
 	e.GET("/api/v1/products", controllers.GetAllProducts)
 	e.GET("/api/v1/products/:product_id", controllers.GetProductDetail)
 	e.POST("/api/v1/products", controllers.CreateProduct)
@@ -28,7 +28,7 @@ func Init() *echo.Echo {
 	e.PUT("/api/v1/categories", controllers.UpdateCategory)
 	e.DELETE("/api/v1/categories/:category_id", controllers.DeleteCategory)
 
-	// Category
+	// Supplier
 	e.GET("/api/v1/suppliers", controllers.GetAllSuppliers)
 	e.GET("/api/v1/suppliers/:supplier_id", controllers.GetSupplierDetail)
 	e.POST("/api/v1/suppliers", controllers.CreateSupplier)
@@ -49,6 +49,22 @@ func Init() *echo.Echo {
 	e.POST("/api/v1/users", controllers.CreateUser)
 	e.PUT("/api/v1/users", controllers.UpdateUser)
 	e.DELETE("/api/v1/users/:user_id", controllers.DeleteUser)
+
+	// Financial
+	e.GET("/api/v1/financials", controllers.GetAllFinancials)
+	e.GET("/api/v1/financials/:financial_id", controllers.GetFinancialDetail)
+	e.GET("/api/v1/financials/balance/", controllers.GetFinancialBalance)
+	e.POST("/api/v1/financials", controllers.CreateFinancial)
+	e.PUT("/api/v1/financials", controllers.UpdateFinancial)
+	e.DELETE("/api/v1/financials/:financial_id", controllers.DeleteFinancial)
+
+	// Sale
+
+	// Purchase
+
+	// Home
+
+	// Dashboard
 
 	return e
 }
