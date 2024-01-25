@@ -20,7 +20,7 @@ type Meta struct {
 
 func ResponseData(typeName string) interface{} {
 	switch typeName {
-	case "Product":
+	case "product":
 		return &Product{}
 	default:
 		return nil

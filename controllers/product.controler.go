@@ -20,7 +20,7 @@ func GetAllProducts(c echo.Context) error {
 		pageSize = 10
 	}
 
-	typeName := "Product" // Set the type name based on your struct
+	typeName := "product" // Set the type name based on your struct
 
 	result, err := models.GetAllProducts(typeName, page, pageSize)
 
@@ -34,6 +34,20 @@ func GetAllProducts(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, result)
+}
+
+func GetProductDetail(c echo.Context) error {
+	productID, err := strconv.Atoi(c.Param("product_id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid product_id"})
+	}
+
+	productDetail, err := models.GetProductDetail(productID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, productDetail)
 }
 
 // func CreateBarang(c echo.Context) error {

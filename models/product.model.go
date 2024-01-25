@@ -96,7 +96,43 @@ func GetAllProducts(typeName string, page, pageSize int) (Response, error) {
 	return res, nil
 }
 
-// func CreateBarang(kode_barang string, nama_barang string) (Response, error) {
+func GetProductDetail(productID int) (Response, error) {
+	var product Product
+	var res Response
+
+	con := db.CreateCon()
+
+	sqlStatement := "SELECT * FROM product WHERE product_id = ?"
+
+	row := con.QueryRow(sqlStatement, productID)
+
+	err := row.Scan(
+		&product.ProductID,
+		&product.ProductCode,
+		&product.ProductName,
+		&product.CategoryID,
+		&product.Brand,
+		&product.PurchasePrice,
+		&product.SalePrice,
+		&product.Stock,
+		&product.Sold,
+		&product.Image,
+		&product.CreatedAt,
+		&product.UpdatedAt,
+	)
+
+	if err != nil {
+		return res, err
+	}
+
+	res.Data = map[string]interface{}{
+		"product": product,
+	}
+
+	return res, nil
+}
+
+// func CreateProduct(kode_barang string, nama_barang string) (Response, error) {
 // 	var res Response
 
 // 	con := db.CreateCon()
