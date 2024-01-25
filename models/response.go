@@ -32,6 +32,14 @@ func ResponseData(typeName string) interface{} {
 		return &User{}
 	case "financial":
 		return &Financial{}
+	case "purchase":
+		return &Purchase{}
+	case "purchase_detail":
+		return &PurchaseDetail{}
+	case "sale":
+		return &Sale{}
+	case "sale_detail":
+		return &SaleDetail{}
 	default:
 		return nil
 	}
