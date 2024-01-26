@@ -63,7 +63,7 @@ func Init() *echo.Echo {
 	e.GET("/api/v1/sales/:sale_id", controllers.GetSaleByID)
 	e.GET("/api/v1/sales/detail/:sale_id", controllers.GetSalesDetail)
 	e.POST("/api/v1/sales", controllers.CreateSale)
-	// e.PUT("/api/v1/purchases", controllers.UpdateFinancial)
+	e.PUT("/api/v1/sales", controllers.UpdateSale)
 	e.DELETE("/api/v1/sales/:sale_id", controllers.DeleteSale)
 
 	// Purchase
@@ -71,7 +71,7 @@ func Init() *echo.Echo {
 	e.GET("/api/v1/purchases/:purchase_id", controllers.GetPurchasebyID)
 	e.GET("/api/v1/purchases/detail/:purchase_id", controllers.GetPurchasesDetail)
 	e.POST("/api/v1/purchases", controllers.CreatePurchase)
-	// e.PUT("/api/v1/purchases", controllers.UpdateFinancial)
+	e.PUT("/api/v1/purchases", controllers.UpdatePurchase)
 	e.DELETE("/api/v1/purchases/:purchase_id", controllers.DeletePurchase)
 
 	// Home

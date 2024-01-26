@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 	"tpt_backend/models"
@@ -117,42 +118,34 @@ func CreateSale(c echo.Context) error {
 	return c.JSON(http.StatusOK, result)
 }
 
-// func UpdatePurchase(c echo.Context) error {
-// 	// Parse the request body to get the update data
-// 	var updateFields map[string]interface{}
-// 	if err := json.NewDecoder(c.Request().Body).Decode(&updateFields); err != nil {
-// 		return c.JSON(
-// 			http.StatusBadRequest,
-// 			map[string]string{"message": "Invalid request body"},
-// 		)
-// 	}
+func UpdateSale(c echo.Context) error {
+	// Parse the request body to get the update data
+	var updateRequest models.UpdateSaleRequest
+	if err := json.NewDecoder(c.Request().Body).Decode(&updateRequest); err != nil {
+		return c.JSON(
+			http.StatusBadRequest,
+			map[string]string{"message": "Invalid request body"},
+		)
+	}
 
-// 	// Extract the ID from the update data
-// 	purchaseID, ok := updateFields["purchase_id"].(float64)
-// 	if !ok {
-// 		return c.JSON(
-// 			http.StatusBadRequest,
-// 			map[string]string{"message": "Invalid purchase_id format"},
-// 		)
-// 	}
+	// Call the UpdateSale function from the models package
+	result, err := models.UpdateSale(
+		updateRequest.SaleID,
+		updateRequest.UserID,
+		updateRequest.SaleDate,
+		updateRequest.TotalItem,
+		updateRequest.TotalPrice,
+		updateRequest.SalesDetail,
+	)
+	if err != nil {
+		return c.JSON(
+			http.StatusInternalServerError,
+			map[string]string{"message": err.Error()},
+		)
+	}
 
-// 	// Convert id to integer
-// 	convID := int(purchaseID)
-
-// 	// Remove id from the updateFields map before passing it to the model
-// 	delete(updateFields, "purchase_id")
-
-// 	// Call the UpdateCategory function from the models package
-// 	result, err := models.UpdatePurchase(convID, updateFields)
-// 	if err != nil {
-// 		return c.JSON(
-// 			http.StatusInternalServerError,
-// 			map[string]string{"message": err.Error()},
-// 		)
-// 	}
-
-// 	return c.JSON(http.StatusOK, result)
-// }
+	return c.JSON(http.StatusOK, result)
+}
 
 func DeleteSale(c echo.Context) error {
 	saleID := c.Param("sale_id")
