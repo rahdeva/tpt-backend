@@ -75,6 +75,7 @@ func Init() *echo.Echo {
 	e.DELETE("/api/v1/purchases/:purchase_id", controllers.DeletePurchase)
 
 	// Home
+	e.GET("/api/v1/home", controllers.GetHomeData)
 
 	// Dashboard
 
