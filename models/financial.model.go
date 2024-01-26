@@ -219,8 +219,8 @@ func CreateFinancial(
 		return res, err
 	}
 
-	created_at := time.Now().In(loc)
-	updated_at := time.Now().In(loc)
+	created_at := time.Now()
+	updated_at := time.Now()
 
 	result, err := stmt.Exec(
 		userID,
@@ -246,7 +246,7 @@ func CreateFinancial(
 
 	res.Data = map[string]interface{}{
 		"getIdLast":  getIdLast,
-		"created_at": created_at,
+		"created_at": created_at.In(loc),
 	}
 
 	return res, nil
