@@ -80,6 +80,7 @@ func CreateFinancial(c echo.Context) error {
 	result, err := models.CreateFinancial(
 		financial.UserID,
 		financial.Type,
+		financial.FinancialDate,
 		financial.Information,
 		financial.CashIn,
 		financial.CashOut,

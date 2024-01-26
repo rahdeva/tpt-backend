@@ -1,6 +1,7 @@
 package models
 
 import (
+	"time"
 	"tpt_backend/db"
 )
 
@@ -20,16 +21,19 @@ func GetHomeData() (Response, error) {
 	con := db.CreateCon()
 
 	sqlStatement := `
-		SELECT 
-			(SELECT COUNT(*) FROM product) AS total_produk,
-			(SELECT COUNT(*) FROM category) AS total_kategori,
-			(SELECT COUNT(*) FROM supplier) AS total_supplier,
-			(SELECT COUNT(*) FROM user) AS total_user,
-			(SELECT COUNT(*) FROM sale WHERE DATE(sale_date) = CURDATE()) AS total_penjualan_hari_ini,
-			(SELECT COUNT(*) FROM purchase WHERE DATE(purchase_date) = CURDATE()) AS total_pembelian_hari_ini
+	SELECT 
+	(SELECT COUNT(*) FROM product) AS total_produk,
+	(SELECT COUNT(*) FROM category) AS total_kategori,
+	(SELECT COUNT(*) FROM supplier) AS total_supplier,
+	(SELECT COUNT(*) FROM user) AS total_user,
+	(SELECT SUM(total_price) FROM sale WHERE sale_date BETWEEN ? AND ?) AS total_penjualan_hari_ini,
+	(SELECT SUM(total_price) FROM purchase WHERE purchase_date BETWEEN ? AND ?) AS total_pembelian_hari_ini
 	`
 
-	row := con.QueryRow(sqlStatement)
+	startOfDay := time.Now().UTC().Truncate(24 * time.Hour)
+	endOfDay := startOfDay.Add(24 * time.Hour).Add(-time.Second)
+
+	row := con.QueryRow(sqlStatement, startOfDay, endOfDay, startOfDay, endOfDay)
 
 	err := row.Scan(
 		&home.TotalProduk,

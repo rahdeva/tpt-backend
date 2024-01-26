@@ -9,6 +9,7 @@ import (
 
 type Sale struct {
 	SaleID     int       `json:"sale_id"`
+	UserID     int       `json:"user_id"`
 	SaleDate   time.Time `json:"sale_date"`
 	TotalItem  int       `json:"total_item"`
 	TotalPrice int       `json:"total_price"`
@@ -28,6 +29,7 @@ type SaleDetail struct {
 }
 
 type CreateSaleRequest struct {
+	UserID      int          `json:"user_id"`
 	SaleDate    time.Time    `json:"sale_date"`
 	TotalItem   int          `json:"total_item"`
 	TotalPrice  int          `json:"total_price"`
@@ -97,6 +99,7 @@ func GetAllSales(typeName string, page, pageSize int) (Response, error) {
 		// Convert time fields to UTC+8 (Asia/Shanghai) before including them in the response
 		createdAtField, _ := objValue.Type().FieldByName("CreatedAt")
 		updatedAtField, _ := objValue.Type().FieldByName("UpdatedAt")
+		saleDateField, _ := objValue.Type().FieldByName("SaleDate") // assuming the field name is "SaleDate"
 
 		if createdAtField.Type == reflect.TypeOf(time.Time{}) {
 			createdAtFieldIndex := createdAtField.Index[0]
@@ -108,6 +111,12 @@ func GetAllSales(typeName string, page, pageSize int) (Response, error) {
 			updatedAtFieldIndex := updatedAtField.Index[0]
 			updatedAtValue := objValue.Field(updatedAtFieldIndex).Interface().(time.Time)
 			objValue.Field(updatedAtFieldIndex).Set(reflect.ValueOf(updatedAtValue.In(loc)))
+		}
+
+		if saleDateField.Type == reflect.TypeOf(time.Time{}) {
+			saleDateFieldIndex := saleDateField.Index[0]
+			saleDateValue := objValue.Field(saleDateFieldIndex).Interface().(time.Time)
+			objValue.Field(saleDateFieldIndex).Set(reflect.ValueOf(saleDateValue.In(loc)))
 		}
 
 		if !arrobj.IsValid() {
@@ -274,6 +283,7 @@ func GetSaleByID(saleID int) (Response, error) {
 }
 
 func CreateSale(
+	userId int,
 	saleDate time.Time,
 	totalItem int,
 	totalPrice int,
@@ -283,7 +293,7 @@ func CreateSale(
 
 	con := db.CreateCon()
 
-	sqlStatement := "INSERT INTO sale (sale_date, total_item, total_price, created_at, updated_at) VALUES (?, ?, ?, ?, ?)"
+	sqlStatement := "INSERT INTO sale (user_id, sale_date, total_item, total_price, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
 
 	stmt, err := con.Prepare(sqlStatement)
 
@@ -291,16 +301,11 @@ func CreateSale(
 		return res, err
 	}
 
-	// Load the UTC+8 time zone
-	loc, err := time.LoadLocation("Asia/Shanghai")
-	if err != nil {
-		return res, err
-	}
-
-	created_at := time.Now().In(loc)
-	updated_at := time.Now().In(loc)
+	created_at := time.Now()
+	updated_at := time.Now()
 
 	result, err := stmt.Exec(
+		userId,
 		saleDate,
 		totalItem,
 		totalPrice,
@@ -347,6 +352,7 @@ func CreateSale(
 
 	res.Data = map[string]interface{}{
 		"sale_id":     getIdLast,
+		"user_id":     userId,
 		"sale_date":   saleDate,
 		"total_item":  totalItem,
 		"total_price": totalPrice,

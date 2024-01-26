@@ -9,6 +9,7 @@ import (
 
 type Purchase struct {
 	PurchaseID   int       `json:"purchase_id"`
+	UserID       int       `json:"user_id"`
 	SupplierID   int       `json:"supplier_id"`
 	PurchaseDate time.Time `json:"purchase_date"`
 	TotalItem    int       `json:"total_item"`
@@ -29,6 +30,7 @@ type PurchaseDetail struct {
 }
 
 type CreatePurchaseRequest struct {
+	UserID          int              `json:"user_id"`
 	SupplierID      int              `json:"supplier_id"`
 	PurchaseDate    time.Time        `json:"purchase_date"`
 	TotalItem       int              `json:"total_item"`
@@ -99,6 +101,7 @@ func GetAllPurchases(typeName string, page, pageSize int) (Response, error) {
 		// Convert time fields to UTC+8 (Asia/Shanghai) before including them in the response
 		createdAtField, _ := objValue.Type().FieldByName("CreatedAt")
 		updatedAtField, _ := objValue.Type().FieldByName("UpdatedAt")
+		purchaseDateField, _ := objValue.Type().FieldByName("PurchaseDate") // assuming the field name is "PurchaseDate"
 
 		if createdAtField.Type == reflect.TypeOf(time.Time{}) {
 			createdAtFieldIndex := createdAtField.Index[0]
@@ -110,6 +113,12 @@ func GetAllPurchases(typeName string, page, pageSize int) (Response, error) {
 			updatedAtFieldIndex := updatedAtField.Index[0]
 			updatedAtValue := objValue.Field(updatedAtFieldIndex).Interface().(time.Time)
 			objValue.Field(updatedAtFieldIndex).Set(reflect.ValueOf(updatedAtValue.In(loc)))
+		}
+
+		if purchaseDateField.Type == reflect.TypeOf(time.Time{}) {
+			purchaseDateFieldIndex := purchaseDateField.Index[0]
+			purchaseDateValue := objValue.Field(purchaseDateFieldIndex).Interface().(time.Time)
+			objValue.Field(purchaseDateFieldIndex).Set(reflect.ValueOf(purchaseDateValue.In(loc)))
 		}
 
 		if !arrobj.IsValid() {
@@ -277,6 +286,7 @@ func GetPurchasebyID(purchaseID int) (Response, error) {
 }
 
 func CreatePurchase(
+	userId int,
 	supplierID int,
 	purchaseDate time.Time,
 	totalItem int,
@@ -287,7 +297,7 @@ func CreatePurchase(
 
 	con := db.CreateCon()
 
-	sqlStatement := "INSERT INTO purchase (supplier_id, purchase_date, total_item, total_price, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
+	sqlStatement := "INSERT INTO purchase (user_id, supplier_id, purchase_date, total_item, total_price, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
 
 	stmt, err := con.Prepare(sqlStatement)
 
@@ -295,16 +305,11 @@ func CreatePurchase(
 		return res, err
 	}
 
-	// Load the UTC+8 time zone
-	loc, err := time.LoadLocation("Asia/Shanghai")
-	if err != nil {
-		return res, err
-	}
-
-	created_at := time.Now().In(loc)
-	updated_at := time.Now().In(loc)
+	created_at := time.Now()
+	updated_at := time.Now()
 
 	result, err := stmt.Exec(
+		userId,
 		supplierID,
 		purchaseDate,
 		totalItem,
@@ -352,6 +357,7 @@ func CreatePurchase(
 
 	res.Data = map[string]interface{}{
 		"purchase_id":   getIdLast,
+		"user_id":       userId,
 		"supplier_id":   supplierID,
 		"purchase_date": purchaseDate,
 		"total_item":    totalItem,

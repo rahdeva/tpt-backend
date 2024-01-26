@@ -8,15 +8,16 @@ import (
 )
 
 type Financial struct {
-	FinancialID int       `json:"financial_id"`
-	UserID      int       `json:"user_id"`
-	Type        int       `json:"type"`
-	Information string    `json:"information"`
-	CashIn      int       `json:"cash_in"`
-	CashOut     int       `json:"cash_out"`
-	Balance     int       `json:"balance"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	FinancialID   int       `json:"financial_id"`
+	UserID        int       `json:"user_id"`
+	Type          int       `json:"type"`
+	FinancialDate time.Time `json:"financial_date"`
+	Information   string    `json:"information"`
+	CashIn        int       `json:"cash_in"`
+	CashOut       int       `json:"cash_out"`
+	Balance       int       `json:"balance"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
 }
 
 func GetAllFinancials(typeName string, page, pageSize int) (Response, error) {
@@ -82,6 +83,7 @@ func GetAllFinancials(typeName string, page, pageSize int) (Response, error) {
 		// Convert time fields to UTC+8 (Asia/Shanghai) before including them in the response
 		createdAtField, _ := objValue.Type().FieldByName("CreatedAt")
 		updatedAtField, _ := objValue.Type().FieldByName("UpdatedAt")
+		financialDateField, _ := objValue.Type().FieldByName("FinancialDate")
 
 		if createdAtField.Type == reflect.TypeOf(time.Time{}) {
 			createdAtFieldIndex := createdAtField.Index[0]
@@ -93,6 +95,12 @@ func GetAllFinancials(typeName string, page, pageSize int) (Response, error) {
 			updatedAtFieldIndex := updatedAtField.Index[0]
 			updatedAtValue := objValue.Field(updatedAtFieldIndex).Interface().(time.Time)
 			objValue.Field(updatedAtFieldIndex).Set(reflect.ValueOf(updatedAtValue.In(loc)))
+		}
+
+		if financialDateField.Type == reflect.TypeOf(time.Time{}) {
+			financialDateFieldIndex := financialDateField.Index[0]
+			financialDateValue := objValue.Field(financialDateFieldIndex).Interface().(time.Time)
+			objValue.Field(financialDateFieldIndex).Set(reflect.ValueOf(financialDateValue.In(loc)))
 		}
 
 		if !arrobj.IsValid() {
@@ -129,6 +137,7 @@ func GetFinancialDetail(financialID int) (Response, error) {
 		&financial.FinancialID,
 		&financial.UserID,
 		&financial.Type,
+		&financial.FinancialDate,
 		&financial.Information,
 		&financial.CashIn,
 		&financial.CashOut,
@@ -186,6 +195,7 @@ func GetFinancialBalance() (Response, error) {
 func CreateFinancial(
 	userID int,
 	financialType int,
+	financialDate time.Time,
 	information string,
 	cashIn int,
 	cashOut int,
@@ -195,7 +205,7 @@ func CreateFinancial(
 
 	con := db.CreateCon()
 
-	sqlStatement := "INSERT INTO financial (user_id, type, information, cash_in, cash_out, balance, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+	sqlStatement := "INSERT INTO financial (user_id, type, financial_date, information, cash_in, cash_out, balance, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
 	stmt, err := con.Prepare(sqlStatement)
 
@@ -215,6 +225,7 @@ func CreateFinancial(
 	result, err := stmt.Exec(
 		userID,
 		financialType,
+		financialDate,
 		information,
 		cashIn,
 		cashOut,

@@ -100,6 +100,7 @@ func CreateSale(c echo.Context) error {
 
 	// Call the CreateSale function from the models package
 	result, err := models.CreateSale(
+		createRequest.UserID,
 		createRequest.SaleDate,
 		createRequest.TotalItem,
 		createRequest.TotalPrice,
