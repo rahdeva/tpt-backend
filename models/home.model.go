@@ -26,8 +26,8 @@ func GetHomeData() (Response, error) {
 	(SELECT COUNT(*) FROM category) AS total_kategori,
 	(SELECT COUNT(*) FROM supplier) AS total_supplier,
 	(SELECT COUNT(*) FROM user) AS total_user,
-	(SELECT SUM(total_price) FROM sale WHERE sale_date BETWEEN ? AND ?) AS total_penjualan_hari_ini,
-	(SELECT SUM(total_price) FROM purchase WHERE purchase_date BETWEEN ? AND ?) AS total_pembelian_hari_ini
+	(SELECT COALESCE(SUM(total_price), 0) FROM sale WHERE sale_date BETWEEN ? AND ?) AS total_penjualan_hari_ini,
+	(SELECT COALESCE(SUM(total_price), 0) FROM purchase WHERE purchase_date BETWEEN ? AND ?) AS total_pembelian_hari_ini
 	`
 
 	startOfDay := time.Now().UTC().Truncate(24 * time.Hour)
