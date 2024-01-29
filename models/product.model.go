@@ -9,11 +9,12 @@ import (
 
 type Product struct {
 	ProductID     int       `json:"product_id"`
-	ProductCode   string    `json:"product_code"`
-	ProductName   string    `json:"product_name"`
 	CategoryID    int       `json:"category_id"`
-	Brand         string    `json:"brand"`
+	CategoryName  string    `json:"category_name"`
+	ProductName   string    `json:"product_name"`
 	PurchasePrice int       `json:"purchase_price"`
+	ProductCode   string    `json:"product_code"`
+	Brand         string    `json:"brand"`
 	SalePrice     int       `json:"sale_price"`
 	Stock         int       `json:"stock"`
 	Sold          int       `json:"sold"`
@@ -57,7 +58,27 @@ func GetAllProducts(typeName string, page, pageSize int) (Response, error) {
 
 	// Calculate the offset based on the page number and page size
 	offset := (page - 1) * pageSize
-	sqlStatement := fmt.Sprintf("SELECT * FROM product LIMIT %d OFFSET %d", pageSize, offset)
+	sqlStatement := fmt.Sprintf(`
+		SELECT
+			p.product_id,
+			p.category_id,
+			c.category_name,
+			p.product_name,
+			p.purchase_price,
+			p.product_code,
+			p.brand,
+			p.sale_price,
+			p.stock,
+			p.sold,
+			p.image,
+			p.created_at,
+			p.updated_at
+		FROM
+			product p
+		JOIN
+			category c ON p.category_id = c.category_id
+		LIMIT %d OFFSET %d;
+	`, pageSize, offset)
 	rows, err := con.Query(sqlStatement)
 	if err != nil {
 		return res, err
@@ -124,17 +145,39 @@ func GetProductDetail(productID int) (Response, error) {
 
 	con := db.CreateCon()
 
-	sqlStatement := "SELECT * FROM product WHERE product_id = ?"
+	sqlStatement := `
+		SELECT
+			p.product_id,
+			p.category_id,
+			c.category_name,
+			p.product_name,
+			p.purchase_price,
+			p.product_code,
+			p.brand,
+			p.sale_price,
+			p.stock,
+			p.sold,
+			p.image,
+			p.created_at,
+			p.updated_at
+		FROM
+			product p
+		JOIN
+			category c ON p.category_id = c.category_id
+		WHERE
+			p.product_id = ?;
+	`
 
 	row := con.QueryRow(sqlStatement, productID)
 
 	err := row.Scan(
 		&product.ProductID,
-		&product.ProductCode,
-		&product.ProductName,
 		&product.CategoryID,
-		&product.Brand,
+		&product.CategoryName,
+		&product.ProductName,
 		&product.PurchasePrice,
+		&product.ProductCode,
+		&product.Brand,
 		&product.SalePrice,
 		&product.Stock,
 		&product.Sold,

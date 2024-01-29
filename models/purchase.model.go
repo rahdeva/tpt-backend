@@ -11,6 +11,8 @@ type Purchase struct {
 	PurchaseID   int       `json:"purchase_id"`
 	UserID       int       `json:"user_id"`
 	SupplierID   int       `json:"supplier_id"`
+	UserName     string    `json:"user_name"`
+	SupplierName string    `json:"supplier_name"`
 	PurchaseDate time.Time `json:"purchase_date"`
 	TotalItem    int       `json:"total_item"`
 	TotalPrice   int       `json:"total_price"`
@@ -22,6 +24,7 @@ type PurchaseDetail struct {
 	PurchaseDetailID int       `json:"purchase_detail_id"`
 	PurchaseID       int       `json:"purchase_id"`
 	ProductID        int       `json:"product_id"`
+	ProductName      string    `json:"product_name"`
 	PurchasePrice    int       `json:"purchase_price"`
 	Quantity         int       `json:"quantity"`
 	Subtotal         int       `json:"subtotal"`
@@ -83,7 +86,26 @@ func GetAllPurchases(typeName string, page, pageSize int) (Response, error) {
 
 	// Calculate the offset based on the page number and page size
 	offset := (page - 1) * pageSize
-	sqlStatement := fmt.Sprintf("SELECT * FROM purchase LIMIT %d OFFSET %d", pageSize, offset)
+	sqlStatement := fmt.Sprintf(`
+		SELECT
+			p.purchase_id,
+			p.supplier_id,
+			p.user_id,
+			u.name AS user_name,
+			s.supplier_name,
+			p.purchase_date,
+			p.total_item,
+			p.total_price,
+			p.created_at,
+			p.updated_at
+		FROM
+			purchase p
+		JOIN
+			supplier s ON p.supplier_id = s.supplier_id
+		JOIN
+			user u ON p.user_id = u.user_id
+		LIMIT %d OFFSET %d;
+	`, pageSize, offset)
 	rows, err := con.Query(sqlStatement)
 	if err != nil {
 		return res, err
@@ -191,7 +213,25 @@ func GetPurchasesDetail(
 
 	// Calculate the offset based on the page number and page size
 	offset := (page - 1) * pageSize
-	sqlStatement := fmt.Sprintf("SELECT * FROM purchase_detail WHERE purchase_id = ? LIMIT %d OFFSET %d", pageSize, offset)
+	sqlStatement := fmt.Sprintf(`
+		SELECT
+			pd.purchase_detail_id,
+			pd.purchase_id,
+			pd.product_id,
+			p.product_name,
+			pd.purchase_price,
+			pd.quantity,
+			pd.subtotal,
+			pd.created_at,
+			pd.updated_at
+		FROM
+			purchase_detail pd
+		JOIN
+			product p ON pd.product_id = p.product_id
+		WHERE
+			pd.purchase_id = ?
+		LIMIT %d OFFSET %d;
+	`, pageSize, offset)
 	rows, err := con.Query(sqlStatement, purchaseID)
 	if err != nil {
 		return res, err
@@ -259,7 +299,27 @@ func GetPurchasebyID(purchaseID int) (Response, error) {
 
 	con := db.CreateCon()
 
-	sqlStatement := "SELECT * FROM purchase  WHERE purchase_id  = ?"
+	sqlStatement := `
+		SELECT
+			p.purchase_id,
+			p.supplier_id,
+			p.user_id,
+			u.name AS user_name,
+			s.supplier_name,
+			p.purchase_date,
+			p.total_item,
+			p.total_price,
+			p.created_at,
+			p.updated_at
+		FROM
+			purchase p
+		JOIN
+			supplier s ON p.supplier_id = s.supplier_id
+		JOIN
+			user u ON p.user_id = u.user_id
+		WHERE
+			p.purchase_id = ?;
+	`
 
 	row := con.QueryRow(sqlStatement, purchaseID)
 
@@ -267,6 +327,8 @@ func GetPurchasebyID(purchaseID int) (Response, error) {
 		&purchase.PurchaseID,
 		&purchase.UserID,
 		&purchase.SupplierID,
+		&purchase.UserName,
+		&purchase.SupplierName,
 		&purchase.PurchaseDate,
 		&purchase.TotalItem,
 		&purchase.TotalPrice,

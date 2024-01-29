@@ -10,6 +10,7 @@ import (
 type Sale struct {
 	SaleID     int       `json:"sale_id"`
 	UserID     int       `json:"user_id"`
+	UserName   string    `json:"user_name"`
 	SaleDate   time.Time `json:"sale_date"`
 	TotalItem  int       `json:"total_item"`
 	TotalPrice int       `json:"total_price"`
@@ -21,6 +22,7 @@ type SaleDetail struct {
 	SaleDetailID int       `json:"sale_detail_id"`
 	SaleID       int       `json:"sale_id"`
 	ProductID    int       `json:"product_id"`
+	ProductName  string    `json:"product_name"`
 	SalePrice    int       `json:"sale_price"`
 	Quantity     int       `json:"quantity"`
 	Subtotal     int       `json:"subtotal"`
@@ -80,7 +82,22 @@ func GetAllSales(typeName string, page, pageSize int) (Response, error) {
 
 	// Calculate the offset based on the page number and page size
 	offset := (page - 1) * pageSize
-	sqlStatement := fmt.Sprintf("SELECT * FROM sale LIMIT %d OFFSET %d", pageSize, offset)
+	sqlStatement := fmt.Sprintf(`
+		SELECT
+			s.sale_id,
+			s.user_id,
+			u.name AS user_name,
+			s.sale_date,
+			s.total_item,
+			s.total_price,
+			s.created_at,
+			s.updated_at
+		FROM
+			sale s
+		JOIN
+			user u ON s.user_id = u.user_id
+		LIMIT %d OFFSET %d;
+	`, pageSize, offset)
 	rows, err := con.Query(sqlStatement)
 	if err != nil {
 		return res, err
@@ -188,7 +205,25 @@ func GetSalesDetail(
 
 	// Calculate the offset based on the page number and page size
 	offset := (page - 1) * pageSize
-	sqlStatement := fmt.Sprintf("SELECT * FROM sale_detail WHERE sale_id = ? LIMIT %d OFFSET %d", pageSize, offset)
+	sqlStatement := fmt.Sprintf(`
+		SELECT
+			sd.sale_detail_id,
+			sd.sale_id,
+			sd.product_id,
+			p.product_name,
+			sd.sale_price,
+			sd.quantity,
+			sd.subtotal,
+			sd.created_at,
+			sd.updated_at
+		FROM
+			sale_detail sd
+		JOIN
+			product p ON sd.product_id = p.product_id
+		WHERE
+			sd.sale_id = ?
+		LIMIT %d OFFSET %d;
+	`, pageSize, offset)
 	rows, err := con.Query(sqlStatement, saleID)
 	if err != nil {
 		return res, err
@@ -256,13 +291,30 @@ func GetSaleByID(saleID int) (Response, error) {
 
 	con := db.CreateCon()
 
-	sqlStatement := "SELECT * FROM sale WHERE sale_id  = ?"
+	sqlStatement := `
+		SELECT
+			s.sale_id,
+			s.user_id,
+			u.name AS user_name,
+			s.sale_date,
+			s.total_item,
+			s.total_price,
+			s.created_at,
+			s.updated_at
+		FROM
+			sale s
+		JOIN
+			user u ON s.user_id = u.user_id
+		WHERE
+			s.sale_id = ?;
+	`
 
 	row := con.QueryRow(sqlStatement, saleID)
 
 	err := row.Scan(
 		&sale.SaleID,
 		&sale.UserID,
+		&sale.UserName,
 		&sale.SaleDate,
 		&sale.TotalItem,
 		&sale.TotalPrice,

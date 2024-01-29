@@ -10,6 +10,7 @@ import (
 type Financial struct {
 	FinancialID   int       `json:"financial_id"`
 	UserID        int       `json:"user_id"`
+	UserName      string    `json:"user_name"`
 	Type          int       `json:"type"`
 	FinancialDate time.Time `json:"financial_date"`
 	Information   string    `json:"information"`
@@ -55,7 +56,25 @@ func GetAllFinancials(typeName string, page, pageSize int) (Response, error) {
 
 	// Calculate the offset based on the page number and page size
 	offset := (page - 1) * pageSize
-	sqlStatement := fmt.Sprintf("SELECT * FROM financial LIMIT %d OFFSET %d", pageSize, offset)
+	sqlStatement := fmt.Sprintf(`
+		SELECT
+			f.financial_id,
+			f.user_id,
+			u.name AS user_name,
+			f.type,
+			f.financial_date,
+			f.information,
+			f.cash_in,
+			f.cash_out,
+			f.balance,
+			f.created_at,
+			f.updated_at
+		FROM
+			financial f
+		LEFT JOIN
+			user u ON f.user_id = u.user_id
+		LIMIT %d OFFSET %d;
+	`, pageSize, offset)
 	rows, err := con.Query(sqlStatement)
 	if err != nil {
 		return res, err
@@ -129,13 +148,33 @@ func GetFinancialDetail(financialID int) (Response, error) {
 
 	con := db.CreateCon()
 
-	sqlStatement := "SELECT * FROM financial WHERE financial_id = ?"
+	sqlStatement := `
+		SELECT
+			f.financial_id,
+			f.user_id,
+			u.name AS user_name,
+			f.type,
+			f.financial_date,
+			f.information,
+			f.cash_in,
+			f.cash_out,
+			f.balance,
+			f.created_at,
+			f.updated_at
+		FROM
+			financial f
+		LEFT JOIN
+			user u ON f.user_id = u.user_id
+		WHERE
+			f.financial_id = ?;
+	`
 
 	row := con.QueryRow(sqlStatement, financialID)
 
 	err := row.Scan(
 		&financial.FinancialID,
 		&financial.UserID,
+		&financial.UserName,
 		&financial.Type,
 		&financial.FinancialDate,
 		&financial.Information,

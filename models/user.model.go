@@ -10,6 +10,7 @@ import (
 type User struct {
 	UserID         int       `json:"user_id"`
 	RoleID         int       `json:"role_id"`
+	RoleName       string    `json:"role_name"`
 	UID            string    `json:"uid"`
 	Name           string    `json:"name"`
 	Email          string    `json:"email"`
@@ -55,7 +56,25 @@ func GetAllUsers(typeName string, page, pageSize int) (Response, error) {
 
 	// Calculate the offset based on the page number and page size
 	offset := (page - 1) * pageSize
-	sqlStatement := fmt.Sprintf("SELECT * FROM user LIMIT %d OFFSET %d", pageSize, offset)
+	sqlStatement := fmt.Sprintf(`
+		SELECT
+			u.user_id,
+			u.role_id,
+			r.role_name,
+			u.uid,
+			u.name,
+			u.email,
+			u.address,
+			u.phone_number,
+			u.profile_picture,
+			u.created_at,
+			u.updated_at
+		FROM
+			user u
+		JOIN
+			role r ON u.role_id = r.role_id
+		LIMIT %d OFFSET %d
+	`, pageSize, offset)
 	rows, err := con.Query(sqlStatement)
 	if err != nil {
 		return res, err
@@ -122,13 +141,33 @@ func GetUserDetail(userID int) (Response, error) {
 
 	con := db.CreateCon()
 
-	sqlStatement := "SELECT * FROM user WHERE user_id = ?"
+	sqlStatement := `
+		SELECT
+			u.user_id,
+			u.role_id,
+			r.role_name,
+			u.uid,
+			u.name,
+			u.email,
+			u.address,
+			u.phone_number,
+			u.profile_picture,
+			u.created_at,
+			u.updated_at
+		FROM
+			user u
+		JOIN
+			role r ON u.role_id = r.role_id
+		WHERE
+			u.user_id = ?;
+	`
 
 	row := con.QueryRow(sqlStatement, userID)
 
 	err := row.Scan(
 		&user.UserID,
 		&user.RoleID,
+		&user.RoleName,
 		&user.UID,
 		&user.Name,
 		&user.Email,
@@ -166,13 +205,33 @@ func GetUserDetailByUID(uid string) (Response, error) {
 
 	con := db.CreateCon()
 
-	sqlStatement := "SELECT * FROM user WHERE uid = ?"
+	sqlStatement := `
+		SELECT
+			u.user_id,
+			u.role_id,
+			r.role_name,
+			u.uid,
+			u.name,
+			u.email,
+			u.address,
+			u.phone_number,
+			u.profile_picture,
+			u.created_at,
+			u.updated_at
+		FROM
+			user u
+		JOIN
+			role r ON u.role_id = r.role_id
+		WHERE
+			u.uid = ?;
+	`
 
 	row := con.QueryRow(sqlStatement, uid)
 
 	err := row.Scan(
 		&user.UserID,
 		&user.RoleID,
+		&user.RoleName,
 		&user.UID,
 		&user.Name,
 		&user.Email,
