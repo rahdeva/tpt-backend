@@ -23,9 +23,14 @@ func GetAllProducts(c echo.Context) error {
 
 	keyword := c.QueryParam("keyword")
 
+	categoryID, err := strconv.Atoi(c.QueryParam("category_id"))
+	if err != nil {
+		categoryID = 0
+	}
+
 	typeName := "product" // Set the type name based on your struct
 
-	result, err := models.GetAllProducts(typeName, page, pageSize, keyword)
+	result, err := models.GetAllProducts(typeName, page, pageSize, keyword, categoryID)
 	if err != nil {
 		return c.JSON(
 			http.StatusInternalServerError,

@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"reflect"
+	"strings"
 	"time"
 	"tpt_backend/db"
 )
@@ -23,7 +24,13 @@ type Product struct {
 	UpdatedAt     time.Time `json:"updated_at"`
 }
 
-func GetAllProducts(typeName string, page, pageSize int, keyword string) (Response, error) {
+func GetAllProducts(
+	typeName string,
+	page,
+	pageSize int,
+	keyword string,
+	categoryID int,
+) (Response, error) {
 	objType := reflect.TypeOf(ResponseData(typeName))
 	if objType == nil {
 		return Response{}, fmt.Errorf("invalid type: %s", typeName)
@@ -35,10 +42,20 @@ func GetAllProducts(typeName string, page, pageSize int, keyword string) (Respon
 
 	con := db.CreateCon()
 
-	// Add a WHERE clause to filter products based on the keyword
+	// Add a WHERE clause to filter products based on the keyword and category_id
 	whereClause := ""
+	conditions := make([]string, 0)
+
 	if keyword != "" {
-		whereClause = " WHERE p.product_name LIKE '%" + keyword + "%' OR p.brand LIKE '%" + keyword + "%'"
+		conditions = append(conditions, fmt.Sprintf("(p.product_name LIKE '%%%s%%' OR p.brand LIKE '%%%s%%')", keyword, keyword))
+	}
+
+	if categoryID != 0 {
+		conditions = append(conditions, fmt.Sprintf("p.category_id = %d", categoryID))
+	}
+
+	if len(conditions) > 0 {
+		whereClause = " WHERE " + strings.Join(conditions, " AND ")
 	}
 
 	// Calculate the offset based on the page number and page size
