@@ -21,7 +21,7 @@ type User struct {
 	UpdatedAt      time.Time `json:"updated_at"`
 }
 
-func GetAllUsers(typeName string, page, pageSize int) (Response, error) {
+func GetAllUsers(typeName string, page, pageSize int, keyword string) (Response, error) {
 	objType := reflect.TypeOf(ResponseData(typeName))
 	if objType == nil {
 		return Response{}, fmt.Errorf("invalid type: %s", typeName)
@@ -33,9 +33,15 @@ func GetAllUsers(typeName string, page, pageSize int) (Response, error) {
 
 	con := db.CreateCon()
 
-	// Count total items in the database
+	// Add a WHERE clause to filter users based on the keyword
+	whereClause := ""
+	if keyword != "" {
+		whereClause = " WHERE u.name LIKE '%" + keyword + "%'"
+	}
+
+	// Count total items in the filtered result set
 	var totalItems int
-	err := con.QueryRow("SELECT COUNT(*) FROM user").Scan(&totalItems)
+	err := con.QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM user u JOIN role r ON u.role_id = r.role_id %s", whereClause)).Scan(&totalItems)
 	if err != nil {
 		return res, err
 	}
@@ -73,8 +79,9 @@ func GetAllUsers(typeName string, page, pageSize int) (Response, error) {
 			user u
 		JOIN
 			role r ON u.role_id = r.role_id
+		%s
 		LIMIT %d OFFSET %d
-	`, pageSize, offset)
+	`, whereClause, pageSize, offset)
 	rows, err := con.Query(sqlStatement)
 	if err != nil {
 		return res, err

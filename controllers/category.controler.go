@@ -21,9 +21,11 @@ func GetAllCategories(c echo.Context) error {
 		pageSize = 10
 	}
 
+	keyword := c.QueryParam("keyword")
+
 	typeName := "category" // Set the type name based on your struct
 
-	result, err := models.GetAllCategories(typeName, page, pageSize)
+	result, err := models.GetAllCategories(typeName, page, pageSize, keyword)
 	if err != nil {
 		return c.JSON(
 			http.StatusInternalServerError,

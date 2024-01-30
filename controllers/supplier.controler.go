@@ -21,9 +21,11 @@ func GetAllSuppliers(c echo.Context) error {
 		pageSize = 10
 	}
 
+	keyword := c.QueryParam("keyword")
+
 	typeName := "supplier" // Set the type name based on your struct
 
-	result, err := models.GetAllSuppliers(typeName, page, pageSize)
+	result, err := models.GetAllSuppliers(typeName, page, pageSize, keyword)
 	if err != nil {
 		return c.JSON(
 			http.StatusInternalServerError,

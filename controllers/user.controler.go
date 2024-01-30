@@ -21,9 +21,11 @@ func GetAllUsers(c echo.Context) error {
 		pageSize = 10
 	}
 
+	keyword := c.QueryParam("keyword")
+
 	typeName := "user" // Set the type name based on your struct
 
-	result, err := models.GetAllUsers(typeName, page, pageSize)
+	result, err := models.GetAllUsers(typeName, page, pageSize, keyword)
 	if err != nil {
 		return c.JSON(
 			http.StatusInternalServerError,

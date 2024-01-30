@@ -16,7 +16,7 @@ type Category struct {
 	UpdatedAt     time.Time `json:"updated_at"`
 }
 
-func GetAllCategories(typeName string, page, pageSize int) (Response, error) {
+func GetAllCategories(typeName string, page, pageSize int, keyword string) (Response, error) {
 	objType := reflect.TypeOf(ResponseData(typeName))
 	if objType == nil {
 		return Response{}, fmt.Errorf("invalid type: %s", typeName)
@@ -28,9 +28,15 @@ func GetAllCategories(typeName string, page, pageSize int) (Response, error) {
 
 	con := db.CreateCon()
 
+	// Add a WHERE clause to filter categories based on the keyword
+	whereClause := ""
+	if keyword != "" {
+		whereClause = " WHERE category_name LIKE '%" + keyword + "%'"
+	}
+
 	// Count total items in the database
 	var totalItems int
-	err := con.QueryRow("SELECT COUNT(*) FROM category").Scan(&totalItems)
+	err := con.QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM category %s", whereClause)).Scan(&totalItems)
 	if err != nil {
 		return res, err
 	}
@@ -51,7 +57,7 @@ func GetAllCategories(typeName string, page, pageSize int) (Response, error) {
 
 	// Calculate the offset based on the page number and page size
 	offset := (page - 1) * pageSize
-	sqlStatement := fmt.Sprintf("SELECT * FROM category LIMIT %d OFFSET %d", pageSize, offset)
+	sqlStatement := fmt.Sprintf("SELECT * FROM category %s LIMIT %d OFFSET %d", whereClause, pageSize, offset)
 	rows, err := con.Query(sqlStatement)
 	if err != nil {
 		return res, err

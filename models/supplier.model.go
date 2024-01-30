@@ -16,7 +16,7 @@ type Supplier struct {
 	UpdatedAt    time.Time `json:"updated_at"`
 }
 
-func GetAllSuppliers(typeName string, page, pageSize int) (Response, error) {
+func GetAllSuppliers(typeName string, page, pageSize int, keyword string) (Response, error) {
 	objType := reflect.TypeOf(ResponseData(typeName))
 	if objType == nil {
 		return Response{}, fmt.Errorf("invalid type: %s", typeName)
@@ -28,9 +28,15 @@ func GetAllSuppliers(typeName string, page, pageSize int) (Response, error) {
 
 	con := db.CreateCon()
 
+	// Add a WHERE clause to filter suppliers based on the keyword
+	whereClause := ""
+	if keyword != "" {
+		whereClause = " WHERE supplier_name LIKE '%" + keyword + "%'"
+	}
+
 	// Count total items in the database
 	var totalItems int
-	err := con.QueryRow("SELECT COUNT(*) FROM supplier").Scan(&totalItems)
+	err := con.QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM supplier %s", whereClause)).Scan(&totalItems)
 	if err != nil {
 		return res, err
 	}
@@ -51,7 +57,7 @@ func GetAllSuppliers(typeName string, page, pageSize int) (Response, error) {
 
 	// Calculate the offset based on the page number and page size
 	offset := (page - 1) * pageSize
-	sqlStatement := fmt.Sprintf("SELECT * FROM supplier LIMIT %d OFFSET %d", pageSize, offset)
+	sqlStatement := fmt.Sprintf("SELECT * FROM supplier %s LIMIT %d OFFSET %d", whereClause, pageSize, offset)
 	rows, err := con.Query(sqlStatement)
 	if err != nil {
 		return res, err

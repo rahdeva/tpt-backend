@@ -23,7 +23,7 @@ type Product struct {
 	UpdatedAt     time.Time `json:"updated_at"`
 }
 
-func GetAllProducts(typeName string, page, pageSize int) (Response, error) {
+func GetAllProducts(typeName string, page, pageSize int, keyword string) (Response, error) {
 	objType := reflect.TypeOf(ResponseData(typeName))
 	if objType == nil {
 		return Response{}, fmt.Errorf("invalid type: %s", typeName)
@@ -35,25 +35,10 @@ func GetAllProducts(typeName string, page, pageSize int) (Response, error) {
 
 	con := db.CreateCon()
 
-	// Count total items in the database
-	var totalItems int
-	err := con.QueryRow("SELECT COUNT(*) FROM product").Scan(&totalItems)
-	if err != nil {
-		return res, err
-	}
-
-	// Load the UTC+8 time zone
-	loc, err := time.LoadLocation("Asia/Shanghai")
-	if err != nil {
-		return res, err
-	}
-
-	// Calculate the total number of pages
-	totalPages := calculateTotalPages(totalItems, pageSize)
-
-	// Check if the requested page is greater than the total number of pages
-	if page > totalPages {
-		return res, fmt.Errorf("requested page (%d) exceeds total number of pages (%d)", page, totalPages)
+	// Add a WHERE clause to filter products based on the keyword
+	whereClause := ""
+	if keyword != "" {
+		whereClause = " WHERE p.product_name LIKE '%" + keyword + "%' OR p.brand LIKE '%" + keyword + "%'"
 	}
 
 	// Calculate the offset based on the page number and page size
@@ -77,13 +62,35 @@ func GetAllProducts(typeName string, page, pageSize int) (Response, error) {
 			product p
 		JOIN
 			category c ON p.category_id = c.category_id
+		%s
 		LIMIT %d OFFSET %d;
-	`, pageSize, offset)
+	`, whereClause, pageSize, offset)
 	rows, err := con.Query(sqlStatement)
 	if err != nil {
 		return res, err
 	}
 	defer rows.Close()
+
+	// Count total items in the database
+	var totalItems int
+	err = con.QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM product p JOIN category c ON p.category_id = c.category_id %s", whereClause)).Scan(&totalItems)
+	if err != nil {
+		return res, err
+	}
+
+	// Load the UTC+8 time zone
+	loc, err := time.LoadLocation("Asia/Shanghai")
+	if err != nil {
+		return res, err
+	}
+
+	// Calculate the total number of pages
+	totalPages := calculateTotalPages(totalItems, pageSize)
+
+	// Check if the requested page is greater than the total number of pages
+	if page > totalPages {
+		return res, fmt.Errorf("requested page (%d) exceeds total number of pages (%d)", page, totalPages)
+	}
 
 	for rows.Next() {
 		obj := ResponseData(typeName)
