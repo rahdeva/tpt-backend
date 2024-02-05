@@ -109,6 +109,21 @@ func GetAllProducts(
 		return res, fmt.Errorf("requested page (%d) exceeds total number of pages (%d)", page, totalPages)
 	}
 
+	// If no items are found, return an empty response data object
+	if totalItems == 0 {
+		meta.Limit = pageSize
+		meta.Page = page
+		meta.TotalPages = totalPages
+		meta.TotalItems = totalItems
+
+		res.Data = map[string]interface{}{
+			typeName: make([]interface{}, 0), // Empty slice
+			"meta":   meta,
+		}
+
+		return res, nil
+	}
+
 	for rows.Next() {
 		obj := ResponseData(typeName)
 		objValue := reflect.ValueOf(obj).Elem() // Dereference the pointer
