@@ -95,6 +95,21 @@ func GetAllProducts(
 		return res, err
 	}
 
+	// If no items are found, return an empty response data object
+	if totalItems == 0 {
+		meta.Limit = pageSize
+		meta.Page = page
+		meta.TotalPages = 0
+		meta.TotalItems = totalItems
+
+		res.Data = map[string]interface{}{
+			typeName: make([]interface{}, 0), // Empty slice
+			"meta":   meta,
+		}
+
+		return res, nil
+	}
+
 	// Load the UTC+8 time zone
 	loc, err := time.LoadLocation("Asia/Shanghai")
 	if err != nil {
@@ -107,21 +122,6 @@ func GetAllProducts(
 	// Check if the requested page is greater than the total number of pages
 	if page > totalPages {
 		return res, fmt.Errorf("requested page (%d) exceeds total number of pages (%d)", page, totalPages)
-	}
-
-	// If no items are found, return an empty response data object
-	if totalItems == 0 {
-		meta.Limit = pageSize
-		meta.Page = page
-		meta.TotalPages = totalPages
-		meta.TotalItems = totalItems
-
-		res.Data = map[string]interface{}{
-			typeName: make([]interface{}, 0), // Empty slice
-			"meta":   meta,
-		}
-
-		return res, nil
 	}
 
 	for rows.Next() {
