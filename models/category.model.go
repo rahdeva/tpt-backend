@@ -41,6 +41,21 @@ func GetAllCategories(typeName string, page, pageSize int, keyword string) (Resp
 		return res, err
 	}
 
+	// If no items are found, return an empty response data object
+	if totalItems == 0 {
+		meta.Limit = pageSize
+		meta.Page = page
+		meta.TotalPages = 0
+		meta.TotalItems = totalItems
+
+		res.Data = map[string]interface{}{
+			typeName: make([]interface{}, 0), // Empty slice
+			"meta":   meta,
+		}
+
+		return res, nil
+	}
+
 	// Load the UTC+8 time zone
 	loc, err := time.LoadLocation("Asia/Shanghai")
 	if err != nil {
