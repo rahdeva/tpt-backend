@@ -21,7 +21,12 @@ type Financial struct {
 	UpdatedAt     time.Time `json:"updated_at"`
 }
 
-func GetAllFinancials(typeName string, page, pageSize int) (Response, error) {
+func GetAllFinancials(
+	typeName string,
+	page,
+	pageSize int,
+	keyword string,
+) (Response, error) {
 	objType := reflect.TypeOf(ResponseData(typeName))
 	if objType == nil {
 		return Response{}, fmt.Errorf("invalid type: %s", typeName)
@@ -33,11 +38,32 @@ func GetAllFinancials(typeName string, page, pageSize int) (Response, error) {
 
 	con := db.CreateCon()
 
-	// Count total items in the database
+	// Add a WHERE clause to filter financials based on the keyword
+	whereClause := ""
+	if keyword != "" {
+		whereClause = " WHERE information LIKE '%" + keyword + "%'"
+	}
+
+	// Count total items in the filtered result set
 	var totalItems int
-	err := con.QueryRow("SELECT COUNT(*) FROM financial").Scan(&totalItems)
+	err := con.QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM financial %s", whereClause)).Scan(&totalItems)
 	if err != nil {
 		return res, err
+	}
+
+	// If no items are found, return an empty response data object
+	if totalItems == 0 {
+		meta.Limit = pageSize
+		meta.Page = page
+		meta.TotalPages = 0
+		meta.TotalItems = totalItems
+
+		res.Data = map[string]interface{}{
+			typeName: make([]interface{}, 0), // Empty slice
+			"meta":   meta,
+		}
+
+		return res, nil
 	}
 
 	// Load the UTC+8 time zone
@@ -73,8 +99,9 @@ func GetAllFinancials(typeName string, page, pageSize int) (Response, error) {
 			financial f
 		LEFT JOIN
 			user u ON f.user_id = u.user_id
+		%s
 		LIMIT %d OFFSET %d;
-	`, pageSize, offset)
+	`, whereClause, pageSize, offset)
 	rows, err := con.Query(sqlStatement)
 	if err != nil {
 		return res, err

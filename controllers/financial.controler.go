@@ -21,9 +21,11 @@ func GetAllFinancials(c echo.Context) error {
 		pageSize = 10
 	}
 
+	keyword := c.QueryParam("keyword")
+
 	typeName := "financial" // Set the type name based on your struct
 
-	result, err := models.GetAllFinancials(typeName, page, pageSize)
+	result, err := models.GetAllFinancials(typeName, page, pageSize, keyword)
 	if err != nil {
 		return c.JSON(
 			http.StatusInternalServerError,
