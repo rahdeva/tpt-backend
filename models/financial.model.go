@@ -100,6 +100,7 @@ func GetAllFinancials(
 		LEFT JOIN
 			user u ON f.user_id = u.user_id
 		%s
+		ORDER BY f.financial_id DESC
 		LIMIT %d OFFSET %d;
 	`, whereClause, pageSize, offset)
 	rows, err := con.Query(sqlStatement)

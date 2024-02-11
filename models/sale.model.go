@@ -96,6 +96,7 @@ func GetAllSales(typeName string, page, pageSize int) (Response, error) {
 			sale s
 		JOIN
 			user u ON s.user_id = u.user_id
+		ORDER BY s.sale_id DESC
 		LIMIT %d OFFSET %d;
 	`, pageSize, offset)
 	rows, err := con.Query(sqlStatement)

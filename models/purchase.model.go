@@ -104,6 +104,7 @@ func GetAllPurchases(typeName string, page, pageSize int) (Response, error) {
 			supplier s ON p.supplier_id = s.supplier_id
 		JOIN
 			user u ON p.user_id = u.user_id
+		ORDER BY p.purchase_id DESC
 		LIMIT %d OFFSET %d;
 	`, pageSize, offset)
 	rows, err := con.Query(sqlStatement)
