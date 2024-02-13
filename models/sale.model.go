@@ -22,6 +22,7 @@ type SaleDetail struct {
 	SaleDetailID int       `json:"sale_detail_id"`
 	SaleID       int       `json:"sale_id"`
 	ProductID    int       `json:"product_id"`
+	ProductCode  string    `json:"product_code"`
 	ProductName  string    `json:"product_name"`
 	SalePrice    int       `json:"sale_price"`
 	Quantity     int       `json:"quantity"`
@@ -211,6 +212,7 @@ func GetSalesDetail(
 			sd.sale_detail_id,
 			sd.sale_id,
 			sd.product_id,
+			p.product_code,
 			p.product_name,
 			sd.sale_price,
 			sd.quantity,

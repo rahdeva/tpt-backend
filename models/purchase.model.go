@@ -24,6 +24,7 @@ type PurchaseDetail struct {
 	PurchaseDetailID int       `json:"purchase_detail_id"`
 	PurchaseID       int       `json:"purchase_id"`
 	ProductID        int       `json:"product_id"`
+	ProductCode      string    `json:"product_code"`
 	ProductName      string    `json:"product_name"`
 	PurchasePrice    int       `json:"purchase_price"`
 	Quantity         int       `json:"quantity"`
@@ -219,6 +220,7 @@ func GetPurchasesDetail(
 			pd.purchase_detail_id,
 			pd.purchase_id,
 			pd.product_id,
+			p.product_code,
 			p.product_name,
 			pd.purchase_price,
 			pd.quantity,
