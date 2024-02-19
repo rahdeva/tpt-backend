@@ -50,12 +50,12 @@ func Init() *echo.Echo {
 	e.PUT("/api/v1/users", controllers.UpdateUser)
 	e.DELETE("/api/v1/users/:user_id", controllers.DeleteUser)
 
-	// Financial
-	e.GET("/api/v1/financial_types", controllers.GetAllFinancials)
-	e.GET("/api/v1/financial_types/:financial_types_id", controllers.GetFinancialDetail)
-	e.POST("/api/v1/financial_types", controllers.CreateFinancial)
-	e.PUT("/api/v1/financial_types", controllers.UpdateFinancial)
-	e.DELETE("/api/v1/financial_types/:financial_types_id", controllers.DeleteFinancial)
+	// FinancialType
+	e.GET("/api/v1/financial_types", controllers.GetAllFinancialTypes)
+	e.GET("/api/v1/financial_types/:financial_type_id", controllers.GetFinancialTypeDetail)
+	e.POST("/api/v1/financial_types", controllers.CreateFinancialType)
+	e.PUT("/api/v1/financial_types", controllers.UpdateFinancialType)
+	e.DELETE("/api/v1/financial_types/:financial_type_id", controllers.DeleteFinancialType)
 
 	// Financial
 	e.GET("/api/v1/financials", controllers.GetAllFinancials)

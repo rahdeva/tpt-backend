@@ -7,19 +7,14 @@ import (
 	"tpt_backend/db"
 )
 
-type FinancialTypesModel struct {
+type FinancialType struct {
 	FinancialTypeID   int       `json:"financial_type_id"`
 	FinancialTypeName string    `json:"financial_type_name"`
 	CreatedAt         time.Time `json:"created_at"`
 	UpdatedAt         time.Time `json:"updated_at"`
 }
 
-func GetAllFinancials(
-	typeName string,
-	page,
-	pageSize int,
-	keyword string,
-) (Response, error) {
+func GetAllFinancialTypes(typeName string, page, pageSize int) (Response, error) {
 	objType := reflect.TypeOf(ResponseData(typeName))
 	if objType == nil {
 		return Response{}, fmt.Errorf("invalid type: %s", typeName)
@@ -31,32 +26,11 @@ func GetAllFinancials(
 
 	con := db.CreateCon()
 
-	// Add a WHERE clause to filter financials based on the keyword
-	whereClause := ""
-	if keyword != "" {
-		whereClause = " WHERE information LIKE '%" + keyword + "%'"
-	}
-
-	// Count total items in the filtered result set
+	// Count total items in the database
 	var totalItems int
-	err := con.QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM financial %s", whereClause)).Scan(&totalItems)
+	err := con.QueryRow("SELECT COUNT(*) FROM financial_type").Scan(&totalItems)
 	if err != nil {
 		return res, err
-	}
-
-	// If no items are found, return an empty response data object
-	if totalItems == 0 {
-		meta.Limit = pageSize
-		meta.Page = page
-		meta.TotalPages = 0
-		meta.TotalItems = totalItems
-
-		res.Data = map[string]interface{}{
-			typeName: make([]interface{}, 0), // Empty slice
-			"meta":   meta,
-		}
-
-		return res, nil
 	}
 
 	// Load the UTC+8 time zone
@@ -75,27 +49,7 @@ func GetAllFinancials(
 
 	// Calculate the offset based on the page number and page size
 	offset := (page - 1) * pageSize
-	sqlStatement := fmt.Sprintf(`
-		SELECT
-			f.financial_id,
-			f.user_id,
-			u.name AS user_name,
-			f.financial_type_id,
-			f.financial_date,
-			f.information,
-			f.cash_in,
-			f.cash_out,
-			f.balance,
-			f.created_at,
-			f.updated_at
-		FROM
-			financial f
-		LEFT JOIN
-			user u ON f.user_id = u.user_id
-		%s
-		ORDER BY f.financial_id DESC
-		LIMIT %d OFFSET %d;
-	`, whereClause, pageSize, offset)
+	sqlStatement := fmt.Sprintf("SELECT * FROM financial_type LIMIT %d OFFSET %d", pageSize, offset)
 	rows, err := con.Query(sqlStatement)
 	if err != nil {
 		return res, err
@@ -123,7 +77,6 @@ func GetAllFinancials(
 		// Convert time fields to UTC+8 (Asia/Shanghai) before including them in the response
 		createdAtField, _ := objValue.Type().FieldByName("CreatedAt")
 		updatedAtField, _ := objValue.Type().FieldByName("UpdatedAt")
-		financialDateField, _ := objValue.Type().FieldByName("FinancialDate")
 
 		if createdAtField.Type == reflect.TypeOf(time.Time{}) {
 			createdAtFieldIndex := createdAtField.Index[0]
@@ -135,12 +88,6 @@ func GetAllFinancials(
 			updatedAtFieldIndex := updatedAtField.Index[0]
 			updatedAtValue := objValue.Field(updatedAtFieldIndex).Interface().(time.Time)
 			objValue.Field(updatedAtFieldIndex).Set(reflect.ValueOf(updatedAtValue.In(loc)))
-		}
-
-		if financialDateField.Type == reflect.TypeOf(time.Time{}) {
-			financialDateFieldIndex := financialDateField.Index[0]
-			financialDateValue := objValue.Field(financialDateFieldIndex).Interface().(time.Time)
-			objValue.Field(financialDateFieldIndex).Set(reflect.ValueOf(financialDateValue.In(loc)))
 		}
 
 		if !arrobj.IsValid() {
@@ -163,47 +110,21 @@ func GetAllFinancials(
 	return res, nil
 }
 
-func GetFinancialDetail(financialID int) (Response, error) {
-	var financial Financial
+func GetFinancialTypeDetail(financialTypeID int) (Response, error) {
+	var financialType FinancialType
 	var res Response
 
 	con := db.CreateCon()
 
-	sqlStatement := `
-		SELECT
-			f.financial_id,
-			f.user_id,
-			u.name AS user_name,
-			f.financial_type_id,
-			f.financial_date,
-			f.information,
-			f.cash_in,
-			f.cash_out,
-			f.balance,
-			f.created_at,
-			f.updated_at
-		FROM
-			financial f
-		LEFT JOIN
-			user u ON f.user_id = u.user_id
-		WHERE
-			f.financial_id = ?;
-	`
+	sqlStatement := "SELECT * FROM financial_type WHERE financial_type_id = ?"
 
-	row := con.QueryRow(sqlStatement, financialID)
+	row := con.QueryRow(sqlStatement, financialTypeID)
 
 	err := row.Scan(
-		&financial.FinancialID,
-		&financial.UserID,
-		&financial.UserName,
-		&financial.FinancialTypeID,
-		&financial.FinancialDate,
-		&financial.Information,
-		&financial.CashIn,
-		&financial.CashOut,
-		&financial.Balance,
-		&financial.CreatedAt,
-		&financial.UpdatedAt,
+		&financialType.FinancialTypeID,
+		&financialType.FinancialTypeName,
+		&financialType.CreatedAt,
+		&financialType.UpdatedAt,
 	)
 
 	if err != nil {
@@ -217,55 +138,22 @@ func GetFinancialDetail(financialID int) (Response, error) {
 	}
 
 	// Convert time fields to UTC+8 (Asia/Shanghai) before including them in the response
-	financial.CreatedAt = financial.CreatedAt.In(loc)
-	financial.UpdatedAt = financial.UpdatedAt.In(loc)
+	financialType.CreatedAt = financialType.CreatedAt.In(loc)
+	financialType.UpdatedAt = financialType.UpdatedAt.In(loc)
 
 	res.Data = map[string]interface{}{
-		"financial": financial,
+		"financialType": financialType,
 	}
 
 	return res, nil
 }
 
-func GetFinancialBalance() (Response, error) {
-	var financial Financial
+func CreateFinancialType(financialTypeName string) (Response, error) {
 	var res Response
 
 	con := db.CreateCon()
 
-	sqlStatement := "SELECT balance FROM financial ORDER BY created_at DESC LIMIT 1"
-
-	row := con.QueryRow(sqlStatement)
-
-	err := row.Scan(
-		&financial.Balance, // You only need to retrieve the balance column
-	)
-
-	if err != nil {
-		return res, err
-	}
-
-	res.Data = map[string]interface{}{
-		"balance": financial.Balance,
-	}
-
-	return res, nil
-}
-
-func CreateFinancial(
-	userID int,
-	financialTypeID int,
-	financialDate time.Time,
-	information string,
-	cashIn int,
-	cashOut int,
-	balance int,
-) (Response, error) {
-	var res Response
-
-	con := db.CreateCon()
-
-	sqlStatement := "INSERT INTO financial (user_id, financial_type_id, financial_date, information, cash_in, cash_out, balance, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+	sqlStatement := "INSERT INTO financial_type (financial_type_name, created_at, updated_at) VALUES (?, ?, ?)"
 
 	stmt, err := con.Prepare(sqlStatement)
 
@@ -283,13 +171,7 @@ func CreateFinancial(
 	updated_at := time.Now()
 
 	result, err := stmt.Exec(
-		userID,
-		financialTypeID,
-		financialDate,
-		information,
-		cashIn,
-		cashOut,
-		balance,
+		financialTypeName,
 		created_at,
 		updated_at,
 	)
@@ -312,7 +194,7 @@ func CreateFinancial(
 	return res, nil
 }
 
-func UpdateFinancial(financialID int, updateFields map[string]interface{}) (Response, error) {
+func UpdateFinancialType(financialTypeID int, updateFields map[string]interface{}) (Response, error) {
 	var res Response
 
 	// Load the UTC+8 time zone
@@ -342,8 +224,8 @@ func UpdateFinancial(financialID int, updateFields map[string]interface{}) (Resp
 	}
 
 	// Construct the final SQL statement
-	sqlStatement := "UPDATE financial " + setStatement + " WHERE financial_id = ?"
-	values = append(values, financialID)
+	sqlStatement := "UPDATE financial_type " + setStatement + " WHERE financial_type_id  = ?"
+	values = append(values, financialTypeID)
 
 	stmt, err := con.Prepare(sqlStatement)
 	if err != nil {
@@ -368,12 +250,12 @@ func UpdateFinancial(financialID int, updateFields map[string]interface{}) (Resp
 	return res, nil
 }
 
-func DeleteFinancial(financialID int) (Response, error) {
+func DeleteFinancialType(financialTypeID int) (Response, error) {
 	var res Response
 
 	con := db.CreateCon()
 
-	sqlStatement := "DELETE FROM financial WHERE financial_id = ?"
+	sqlStatement := "DELETE FROM financial_type WHERE financial_type_id = ?"
 
 	stmt, err := con.Prepare(sqlStatement)
 
@@ -381,7 +263,7 @@ func DeleteFinancial(financialID int) (Response, error) {
 		return res, err
 	}
 
-	result, err := stmt.Exec(financialID)
+	result, err := stmt.Exec(financialTypeID)
 
 	if err != nil {
 		return res, err
@@ -393,8 +275,8 @@ func DeleteFinancial(financialID int) (Response, error) {
 	}
 
 	res.Data = map[string]interface{}{
-		"rowsAffected":         rowsAffected,
-		"deleted_financial_id": financialID,
+		"rowsAffected":              rowsAffected,
+		"deleted_financial_type_id": financialTypeID,
 	}
 
 	return res, err

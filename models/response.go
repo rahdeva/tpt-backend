@@ -33,7 +33,7 @@ func ResponseData(typeName string) interface{} {
 	case "financial":
 		return &Financial{}
 	case "financialtype":
-		return &FinancialTypes{}
+		return &FinancialType{}
 	case "purchase":
 		return &Purchase{}
 	case "purchase_detail":
