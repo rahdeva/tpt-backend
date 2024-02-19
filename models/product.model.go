@@ -15,6 +15,7 @@ type Product struct {
 	ProductName   string    `json:"product_name"`
 	PurchasePrice int       `json:"purchase_price"`
 	ProductCode   string    `json:"product_code"`
+	EceranID      int       `json:"eceran_id"`
 	Brand         string    `json:"brand"`
 	SalePrice     int       `json:"sale_price"`
 	Stock         int       `json:"stock"`
@@ -68,6 +69,7 @@ func GetAllProducts(
 			p.product_name,
 			p.purchase_price,
 			p.product_code,
+			p.eceran_id,
 			p.brand,
 			p.sale_price,
 			p.stock,
@@ -192,6 +194,7 @@ func GetProductDetail(productID int) (Response, error) {
 			p.product_name,
 			p.purchase_price,
 			p.product_code,
+			p.eceran_id,
 			p.brand,
 			p.sale_price,
 			p.stock,
@@ -216,6 +219,7 @@ func GetProductDetail(productID int) (Response, error) {
 		&product.ProductName,
 		&product.PurchasePrice,
 		&product.ProductCode,
+		&product.EceranID,
 		&product.Brand,
 		&product.SalePrice,
 		&product.Stock,
@@ -250,6 +254,7 @@ func CreateProduct(
 	product_code string,
 	product_name string,
 	category_id int,
+	eceran_id int,
 	brand string,
 	purchase_price int,
 	sale_price int,
@@ -261,7 +266,7 @@ func CreateProduct(
 
 	con := db.CreateCon()
 
-	sqlStatement := "INSERT INTO product (product_code, product_name, category_id, brand, purchase_price, sale_price, stock, sold, image, created_at, updated_at) VALUES ( ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? )"
+	sqlStatement := "INSERT INTO product (product_code, product_name, category_id, eceran_id, brand, purchase_price, sale_price, stock, sold, image, created_at, updated_at) VALUES ( ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? )"
 
 	stmt, err := con.Prepare(sqlStatement)
 
@@ -282,6 +287,7 @@ func CreateProduct(
 		product_code,
 		product_name,
 		category_id,
+		eceran_id,
 		brand,
 		purchase_price,
 		sale_price,

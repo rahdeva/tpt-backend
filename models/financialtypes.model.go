@@ -7,18 +7,11 @@ import (
 	"tpt_backend/db"
 )
 
-type Financial struct {
-	FinancialID     int       `json:"financial_id"`
-	UserID          int       `json:"user_id"`
-	UserName        string    `json:"user_name"`
-	FinancialTypeID int       `json:"financial_type_id"`
-	FinancialDate   time.Time `json:"financial_date"`
-	Information     string    `json:"information"`
-	CashIn          int       `json:"cash_in"`
-	CashOut         int       `json:"cash_out"`
-	Balance         int       `json:"balance"`
-	CreatedAt       time.Time `json:"created_at"`
-	UpdatedAt       time.Time `json:"updated_at"`
+type FinancialTypesModel struct {
+	FinancialTypeID   int       `json:"financial_type_id"`
+	FinancialTypeName string    `json:"financial_type_name"`
+	CreatedAt         time.Time `json:"created_at"`
+	UpdatedAt         time.Time `json:"updated_at"`
 }
 
 func GetAllFinancials(

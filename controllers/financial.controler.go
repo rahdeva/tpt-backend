@@ -81,7 +81,7 @@ func CreateFinancial(c echo.Context) error {
 	// Call the CreateCategory function from the models package
 	result, err := models.CreateFinancial(
 		financial.UserID,
-		financial.Type,
+		financial.FinancialTypeID,
 		financial.FinancialDate,
 		financial.Information,
 		financial.CashIn,

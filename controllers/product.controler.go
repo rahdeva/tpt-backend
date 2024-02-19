@@ -76,6 +76,7 @@ func CreateProduct(c echo.Context) error {
 		product.ProductCode,
 		product.ProductName,
 		product.CategoryID,
+		product.EceranID,
 		product.Brand,
 		product.PurchasePrice,
 		product.SalePrice,
