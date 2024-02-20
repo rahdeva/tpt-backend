@@ -12,6 +12,7 @@ type Product struct {
 	ProductID     int       `json:"product_id"`
 	CategoryID    int       `json:"category_id"`
 	CategoryName  string    `json:"category_name"`
+	CategoryColor string    `json:"category_color"`
 	ProductName   string    `json:"product_name"`
 	PurchasePrice int       `json:"purchase_price"`
 	ProductCode   string    `json:"product_code"`
@@ -66,6 +67,7 @@ func GetAllProducts(
 			p.product_id,
 			p.category_id,
 			c.category_name,
+			c.category_color,
 			p.product_name,
 			p.purchase_price,
 			p.product_code,
@@ -191,6 +193,7 @@ func GetProductDetail(productID int) (Response, error) {
 			p.product_id,
 			p.category_id,
 			c.category_name,
+			c.category_color,
 			p.product_name,
 			p.purchase_price,
 			p.product_code,
@@ -216,6 +219,7 @@ func GetProductDetail(productID int) (Response, error) {
 		&product.ProductID,
 		&product.CategoryID,
 		&product.CategoryName,
+		&product.CategoryColor,
 		&product.ProductName,
 		&product.PurchasePrice,
 		&product.ProductCode,
