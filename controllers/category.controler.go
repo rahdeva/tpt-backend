@@ -70,6 +70,7 @@ func CreateCategory(c echo.Context) error {
 	result, err := models.CreateCategory(
 		category.CategoryName,
 		category.CategoryCode,
+		category.CategoryProductQuantity,
 		category.CategoryColor,
 	)
 

@@ -8,12 +8,13 @@ import (
 )
 
 type Category struct {
-	CategoryID    int       `json:"category_id"`
-	CategoryName  string    `json:"category_name"`
-	CategoryCode  string    `json:"category_code"`
-	CategoryColor string    `json:"category_color"`
-	CreatedAt     time.Time `json:"created_at"`
-	UpdatedAt     time.Time `json:"updated_at"`
+	CategoryID              int       `json:"category_id"`
+	CategoryName            string    `json:"category_name"`
+	CategoryCode            string    `json:"category_code"`
+	CategoryProductQuantity int       `json:"category_product_quantity"`
+	CategoryColor           string    `json:"category_color"`
+	CreatedAt               time.Time `json:"created_at"`
+	UpdatedAt               time.Time `json:"updated_at"`
 }
 
 func GetAllCategories(typeName string, page, pageSize int, keyword string) (Response, error) {
@@ -147,6 +148,7 @@ func GetCategoryDetail(categoryID int) (Response, error) {
 		&category.CategoryID,
 		&category.CategoryName,
 		&category.CategoryCode,
+		&category.CategoryProductQuantity,
 		&category.CategoryColor,
 		&category.CreatedAt,
 		&category.UpdatedAt,
@@ -176,13 +178,14 @@ func GetCategoryDetail(categoryID int) (Response, error) {
 func CreateCategory(
 	categoryName string,
 	categoryCode string,
+	categoryProductQuantity int,
 	categoryColor string,
 ) (Response, error) {
 	var res Response
 
 	con := db.CreateCon()
 
-	sqlStatement := "INSERT INTO category (category_name, category_code, category_color, created_at, updated_at) VALUES (?, ?, ?, ?, ?)"
+	sqlStatement := "INSERT INTO category (category_name, category_code, category_product_quantity, category_color, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
 
 	stmt, err := con.Prepare(sqlStatement)
 
@@ -202,6 +205,7 @@ func CreateCategory(
 	result, err := stmt.Exec(
 		categoryName,
 		categoryCode,
+		categoryProductQuantity,
 		categoryColor,
 		created_at,
 		updated_at,

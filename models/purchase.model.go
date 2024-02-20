@@ -26,6 +26,7 @@ type PurchaseDetail struct {
 	ProductID        int       `json:"product_id"`
 	ProductCode      string    `json:"product_code"`
 	ProductName      string    `json:"product_name"`
+	EceranID         int       `json:"eceran_id"`
 	PurchasePrice    int       `json:"purchase_price"`
 	Quantity         int       `json:"quantity"`
 	Subtotal         int       `json:"subtotal"`
@@ -50,6 +51,12 @@ type UpdatePurchaseRequest struct {
 	TotalItem       int              `json:"total_item"`
 	TotalPrice      int              `json:"total_price"`
 	PurchasesDetail []PurchaseDetail `json:"purchases_detail"`
+}
+
+type EceranProductPurchase struct {
+	ProductID               int `json:"product_id"`
+	CategoryID              int `json:"category_id"`
+	CategoryProductQuantity int `json:"category_product_quantity"`
 }
 
 func GetAllPurchases(typeName string, page, pageSize int) (Response, error) {
@@ -222,6 +229,7 @@ func GetPurchasesDetail(
 			pd.product_id,
 			p.product_code,
 			p.product_name,
+			p.eceran_id,
 			pd.purchase_price,
 			pd.quantity,
 			pd.subtotal,
@@ -427,6 +435,24 @@ func CreatePurchase(
 			return res, err
 		}
 
+		// Update product stock
+		err = updateProductStockPurchase(detail.ProductID, detail.Quantity)
+		if err != nil {
+			return res, err
+		}
+
+		println(detail.EceranID)
+
+		if detail.EceranID != 0 {
+			eceranProduct := getEceranProductPurchase(detail.ProductID)
+			println(detail.Quantity)
+			println(eceranProduct.CategoryProductQuantity)
+			err = updateProductStockPurchase(detail.EceranID, detail.Quantity*eceranProduct.CategoryProductQuantity)
+			if err != nil {
+				return res, err
+			}
+		}
+
 		// Use the detail result or handle as needed
 		_ = detailResult
 	}
@@ -443,6 +469,55 @@ func CreatePurchase(
 	}
 
 	return res, nil
+}
+
+func updateProductStockPurchase(productID, quantity int) error {
+	con := db.CreateCon()
+
+	// Assuming you have a table named "products" with a column "stock"
+	sqlStatement := "UPDATE product SET stock = stock + ? WHERE product_id = ?"
+
+	stmt, err := con.Prepare(sqlStatement)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(quantity, productID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func getEceranProductPurchase(eceranID int) EceranProductPurchase {
+	var eceranProduct EceranProductPurchase
+
+	con := db.CreateCon()
+
+	sqlStatement := `
+		SELECT
+			p.product_id,
+			p.category_id,
+			c.category_product_quantity
+		FROM
+			product p
+		JOIN
+			category c ON p.category_id = c.category_id
+		WHERE
+			p.product_id = ?;
+	`
+
+	row := con.QueryRow(sqlStatement, eceranID)
+
+	row.Scan(
+		&eceranProduct.ProductID,
+		&eceranProduct.CategoryID,
+		&eceranProduct.CategoryProductQuantity,
+	)
+
+	return eceranProduct
 }
 
 func UpdatePurchase(

@@ -24,6 +24,7 @@ type SaleDetail struct {
 	ProductID    int       `json:"product_id"`
 	ProductCode  string    `json:"product_code"`
 	ProductName  string    `json:"product_name"`
+	EceranID     int       `json:"eceran_id"`
 	SalePrice    int       `json:"sale_price"`
 	Quantity     int       `json:"quantity"`
 	Subtotal     int       `json:"subtotal"`
@@ -46,6 +47,20 @@ type UpdateSaleRequest struct {
 	TotalItem   int          `json:"total_item"`
 	TotalPrice  int          `json:"total_price"`
 	SalesDetail []SaleDetail `json:"sales_detail"`
+}
+
+type EceranProductSale struct {
+	ProductID               int `json:"product_id"`
+	CategoryID              int `json:"category_id"`
+	Stock                   int `json:"stock"`
+	CategoryProductQuantity int `json:"category_product_quantity"`
+}
+
+type ParentEceranProductSale struct {
+	ProductID               int `json:"product_id"`
+	CategoryID              int `json:"category_id"`
+	Stock                   int `json:"stock"`
+	CategoryProductQuantity int `json:"category_product_quantity"`
 }
 
 func GetAllSales(typeName string, page, pageSize int) (Response, error) {
@@ -214,6 +229,7 @@ func GetSalesDetail(
 			sd.product_id,
 			p.product_code,
 			p.product_name,
+			p.eceran_id,
 			sd.sale_price,
 			sd.quantity,
 			sd.subtotal,
@@ -411,6 +427,38 @@ func CreateSale(
 			return res, err
 		}
 
+		// Update product stock
+		err = updateProductStockSale(detail.ProductID, detail.Quantity)
+		if err != nil {
+			return res, err
+		}
+
+		println(detail.EceranID)
+
+		if detail.EceranID != 0 {
+			eceranProduct := getEceranProductSale(detail.ProductID)
+			println(detail.Quantity)
+			println(eceranProduct.CategoryProductQuantity)
+			err = updateProductStockSale(detail.EceranID, detail.Quantity*eceranProduct.CategoryProductQuantity)
+			if err != nil {
+				return res, err
+			}
+		}
+
+		if detail.EceranID == 0 {
+			eceranProduct := getEceranProductSale(detail.ProductID)
+			parentEceranProduct := getParentEceranProductSale(detail.ProductID)
+			println(eceranProduct.Stock)
+			println(parentEceranProduct.Stock)
+			println(parentEceranProduct.CategoryProductQuantity)
+			if eceranProduct.Stock < parentEceranProduct.Stock*parentEceranProduct.CategoryProductQuantity {
+				err = updateProductStockSale(parentEceranProduct.ProductID, 1)
+				if err != nil {
+					return res, err
+				}
+			}
+		}
+
 		// Use the detail result or handle as needed
 		_ = detailResult
 	}
@@ -426,6 +474,88 @@ func CreateSale(
 	}
 
 	return res, nil
+}
+
+func updateProductStockSale(productID, quantity int) error {
+	con := db.CreateCon()
+
+	// Assuming you have a table named "products" with a column "stock"
+	sqlStatement := "UPDATE product SET stock = stock - ? WHERE product_id = ?"
+
+	stmt, err := con.Prepare(sqlStatement)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(quantity, productID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func getEceranProductSale(eceranID int) EceranProductSale {
+	var eceranProduct EceranProductSale
+
+	con := db.CreateCon()
+
+	sqlStatement := `
+		SELECT
+			p.product_id,
+			p.category_id,
+			p.stock,
+			c.category_product_quantity
+		FROM
+			product p
+		JOIN
+			category c ON p.category_id = c.category_id
+		WHERE
+			p.product_id = ?;
+	`
+
+	row := con.QueryRow(sqlStatement, eceranID)
+
+	row.Scan(
+		&eceranProduct.ProductID,
+		&eceranProduct.CategoryID,
+		&eceranProduct.Stock,
+		&eceranProduct.CategoryProductQuantity,
+	)
+
+	return eceranProduct
+}
+
+func getParentEceranProductSale(eceranID int) ParentEceranProductSale {
+	var parentEceranProduct ParentEceranProductSale
+
+	con := db.CreateCon()
+
+	sqlStatement := `
+			SELECT
+				p.product_id,
+				p.category_id,
+				p.stock,
+				c.category_product_quantity
+			FROM
+				product p
+			JOIN
+				category c ON p.category_id = c.category_id
+			WHERE
+				p.eceran_id = ?;
+		`
+
+	row := con.QueryRow(sqlStatement, eceranID)
+
+	row.Scan(
+		&parentEceranProduct.ProductID,
+		&parentEceranProduct.CategoryID,
+		&parentEceranProduct.Stock,
+		&parentEceranProduct.CategoryProductQuantity,
+	)
+
+	return parentEceranProduct
 }
 
 func UpdateSale(
