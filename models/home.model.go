@@ -22,7 +22,7 @@ func GetHomeData() (Response, error) {
 
 	sqlStatement := `
 	SELECT 
-	(SELECT COUNT(*) FROM product) AS total_produk,
+	(SELECT COUNT(*) FROM product_variant) AS total_produk,
 	(SELECT COUNT(*) FROM category) AS total_kategori,
 	(SELECT COUNT(*) FROM supplier) AS total_supplier,
 	(SELECT COUNT(*) FROM user) AS total_user,
