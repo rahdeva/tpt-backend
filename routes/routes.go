@@ -15,6 +15,7 @@ func Init() *echo.Echo {
 	})
 
 	// Product
+	e.GET("/api/v1/product_variants", controllers.GetAllProductVariants)
 	e.GET("/api/v1/products", controllers.GetAllProducts)
 	e.GET("/api/v1/products/:product_id", controllers.GetProductDetail)
 	e.POST("/api/v1/products", controllers.CreateProduct)

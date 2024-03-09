@@ -9,6 +9,38 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+func GetAllProductVariants(c echo.Context) error {
+	// Get query parameters for pagination
+	page, err := strconv.Atoi(c.QueryParam("page"))
+	if err != nil || page < 1 {
+		page = 1
+	}
+
+	pageSize, err := strconv.Atoi(c.QueryParam("pageSize"))
+	if err != nil || pageSize < 1 {
+		pageSize = 10
+	}
+
+	keyword := c.QueryParam("keyword")
+
+	categoryID, err := strconv.Atoi(c.QueryParam("category_id"))
+	if err != nil {
+		categoryID = 0
+	}
+
+	typeName := "product_variant" // Set the type name based on your struct
+
+	result, err := models.GetAllProductVariants(typeName, page, pageSize, keyword, categoryID)
+	if err != nil {
+		return c.JSON(
+			http.StatusInternalServerError,
+			map[string]string{"message": err.Error()},
+		)
+	}
+
+	return c.JSON(http.StatusOK, result)
+}
+
 func GetAllProducts(c echo.Context) error {
 	// Get query parameters for pagination
 	page, err := strconv.Atoi(c.QueryParam("page"))

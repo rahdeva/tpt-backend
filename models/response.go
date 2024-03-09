@@ -20,6 +20,8 @@ type Meta struct {
 
 func ResponseData(typeName string) interface{} {
 	switch typeName {
+	case "product_variant":
+		return &ProductVariant{}
 	case "product":
 		return &Product{}
 	case "category":
