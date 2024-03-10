@@ -19,8 +19,8 @@ func Init() *echo.Echo {
 	e.GET("/api/v1/products", controllers.GetAllProducts)
 	e.GET("/api/v1/products/:product_id", controllers.GetProductDetail)
 	e.POST("/api/v1/products", controllers.CreateProduct)
-	e.PUT("/api/v1/products", controllers.UpdateProduct)
-	e.DELETE("/api/v1/products/:product_id", controllers.DeleteProduct)
+	// e.PUT("/api/v1/products", controllers.UpdateProduct)
+	// e.DELETE("/api/v1/products/:product_id", controllers.DeleteProduct)
 
 	// Category
 	e.GET("/api/v1/categories", controllers.GetAllCategories)

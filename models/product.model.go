@@ -27,33 +27,42 @@ type ProductVariant struct {
 	UpdatedAt          time.Time `json:"updated_at"`
 }
 
-// type Product struct {
-//     ProductID    int       `json:"product_id"`
-//     CategoryID   int       `json:"category_id"`
-//     ProductName  string    `json:"product_name"`
-//     Unit         string    `json:"unit"`
-//     Brand        string    `json:"brand"`
-//     Stock        int       `json:"stock"`
-//     CreatedAt    time.Time `json:"created_at"`
-//     UpdatedAt    time.Time `json:"updated_at"`
-// }
-
 type Product struct {
-	ProductID     int       `json:"product_id"`
-	CategoryID    int       `json:"category_id"`
-	CategoryName  string    `json:"category_name"`
-	CategoryColor string    `json:"category_color"`
-	ProductName   string    `json:"product_name"`
-	PurchasePrice int       `json:"purchase_price"`
-	ProductCode   string    `json:"product_code"`
-	EceranID      int       `json:"eceran_id"`
-	Brand         string    `json:"brand"`
-	SalePrice     int       `json:"sale_price"`
-	Stock         int       `json:"stock"`
-	Sold          int       `json:"sold"`
-	Image         string    `json:"image"`
-	CreatedAt     time.Time `json:"created_at"`
-	UpdatedAt     time.Time `json:"updated_at"`
+	ProductID    int       `json:"product_id"`
+	CategoryID   int       `json:"category_id"`
+	CategoryName string    `json:"category_name"`
+	ProductName  string    `json:"product_name"`
+	Unit         string    `json:"unit"`
+	Brand        string    `json:"brand"`
+	Stock        int       `json:"stock"`
+	TotalVariant int       `json:"total_variant"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+}
+
+type ProductDetail struct {
+	ProductID      int                    `json:"product_id"`
+	CategoryID     int                    `json:"category_id"`
+	CategoryName   string                 `json:"category_name"`
+	ProductName    string                 `json:"product_name"`
+	Unit           string                 `json:"unit"`
+	Brand          string                 `json:"brand"`
+	Stock          int                    `json:"stock"`
+	TotalVariant   int                    `json:"total_variant"`
+	CreatedAt      time.Time              `json:"created_at"`
+	UpdatedAt      time.Time              `json:"updated_at"`
+	ProductVariant []ProductDetailVariant `json:"product_variant"`
+}
+
+type ProductDetailVariant struct {
+	ProductVariantID   int     `json:"product_variant_id"`
+	VariantName        string  `json:"variant_name"`
+	ProductVariantCode string  `json:"product_variant_code"`
+	ProductVariantName string  `json:"product_variant_name"`
+	ProductQuantity    int     `json:"product_quantity"`
+	PurchasePrice      float64 `json:"purchase_price"`
+	SalePrice          float64 `json:"sale_price"`
+	Image              string  `json:"image"`
 }
 
 func GetAllProductVariants(
@@ -267,23 +276,22 @@ func GetAllProducts(
 			p.product_id,
 			p.category_id,
 			c.category_name,
-			c.category_color,
 			p.product_name,
-			p.purchase_price,
-			p.product_code,
-			p.eceran_id,
+			p.unit,
 			p.brand,
-			p.sale_price,
 			p.stock,
-			p.sold,
-			p.image,
+			COUNT(pv.product_variant_id) AS total_variant,
 			p.created_at,
 			p.updated_at
 		FROM
 			product p
 		JOIN
 			category c ON p.category_id = c.category_id
+		LEFT JOIN
+			product_variant pv ON p.product_id = pv.product_id
 		%s
+		GROUP BY
+			p.product_id, c.category_name, p.product_name, p.unit, p.brand, p.created_at, p.updated_at
 		LIMIT %d OFFSET %d;
 	`, whereClause, pageSize, offset)
 	rows, err := con.Query(sqlStatement)
@@ -383,56 +391,54 @@ func GetAllProducts(
 }
 
 func GetProductDetail(productID int) (Response, error) {
-	var product Product
+	var productDetail ProductDetail
 	var res Response
 
 	con := db.CreateCon()
 
-	sqlStatement := `
+	// Query untuk mendapatkan detail produk berdasarkan ID
+	productStmt := `
 		SELECT
 			p.product_id,
 			p.category_id,
 			c.category_name,
-			c.category_color,
 			p.product_name,
-			p.purchase_price,
-			p.product_code,
-			p.eceran_id,
+			p.unit,
 			p.brand,
-			p.sale_price,
 			p.stock,
-			p.sold,
-			p.image,
+			COUNT(pv.product_variant_id) AS total_variant,
 			p.created_at,
 			p.updated_at
 		FROM
 			product p
 		JOIN
 			category c ON p.category_id = c.category_id
+		LEFT JOIN
+			product_variant pv ON p.product_id = pv.product_id
 		WHERE
-			p.product_id = ?;
+			p.product_id = ?
+		GROUP BY
+			p.product_id, c.category_name, p.product_name, p.unit, p.brand, p.created_at, p.updated_at;
 	`
 
-	row := con.QueryRow(sqlStatement, productID)
+	// Eksekusi query produk
+	row := con.QueryRow(productStmt, productID)
 
+	// Memindai hasil query ke variabel productDetail
 	err := row.Scan(
-		&product.ProductID,
-		&product.CategoryID,
-		&product.CategoryName,
-		&product.CategoryColor,
-		&product.ProductName,
-		&product.PurchasePrice,
-		&product.ProductCode,
-		&product.EceranID,
-		&product.Brand,
-		&product.SalePrice,
-		&product.Stock,
-		&product.Sold,
-		&product.Image,
-		&product.CreatedAt,
-		&product.UpdatedAt,
+		&productDetail.ProductID,
+		&productDetail.CategoryID,
+		&productDetail.CategoryName,
+		&productDetail.ProductName,
+		&productDetail.Unit,
+		&productDetail.Brand,
+		&productDetail.Stock,
+		&productDetail.TotalVariant,
+		&productDetail.CreatedAt,
+		&productDetail.UpdatedAt,
 	)
 
+	// Handle error jika terjadi
 	if err != nil {
 		return res, err
 	}
@@ -443,167 +449,218 @@ func GetProductDetail(productID int) (Response, error) {
 		return res, err
 	}
 
-	// Convert time fields to UTC+8 (Asia/Shanghai) before including them in the response
-	product.CreatedAt = product.CreatedAt.In(loc)
-	product.UpdatedAt = product.UpdatedAt.In(loc)
+	// Konversi waktu ke UTC+8 (Asia/Shanghai)
+	productDetail.CreatedAt = productDetail.CreatedAt.In(loc)
+	productDetail.UpdatedAt = productDetail.UpdatedAt.In(loc)
 
-	res.Data = map[string]interface{}{
-		"product": product,
-	}
+	// Query untuk mendapatkan detail variant produk
+	variantStmt := `
+		SELECT
+			product_variant_id,
+			variant_name,
+			product_variant_code,
+			product_variant_name,
+			product_quantity,
+			purchase_price,
+			sale_price,
+			image
+		FROM
+			product_variant
+		WHERE
+			product_id = ?
+		ORDER BY
+			product_quantity;
+	`
 
-	return res, nil
-}
-
-func CreateProduct(
-	product_code string,
-	product_name string,
-	category_id int,
-	eceran_id int,
-	brand string,
-	purchase_price int,
-	sale_price int,
-	stock int,
-	sold int,
-	image string,
-) (Response, error) {
-	var res Response
-
-	con := db.CreateCon()
-
-	sqlStatement := "INSERT INTO product (product_code, product_name, category_id, eceran_id, brand, purchase_price, sale_price, stock, sold, image, created_at, updated_at) VALUES ( ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? )"
-
-	stmt, err := con.Prepare(sqlStatement)
-
+	// Eksekusi query variant produk
+	rows, err := con.Query(variantStmt, productID)
 	if err != nil {
 		return res, err
 	}
+	defer rows.Close()
 
-	// Load the UTC+8 time zone
-	loc, err := time.LoadLocation("Asia/Shanghai")
-	if err != nil {
-		return res, err
-	}
+	// Variabel untuk menyimpan detail variant produk
+	var variants []ProductDetailVariant
 
-	created_at := time.Now()
-	updated_at := time.Now()
-
-	result, err := stmt.Exec(
-		product_code,
-		product_name,
-		category_id,
-		eceran_id,
-		brand,
-		purchase_price,
-		sale_price,
-		stock,
-		sold,
-		image,
-		created_at,
-		updated_at,
-	)
-
-	if err != nil {
-		return res, err
-	}
-
-	getIdLast, err := result.LastInsertId()
-
-	if err != nil {
-		return res, err
-	}
-
-	res.Data = map[string]interface{}{
-		"getIdLast":  getIdLast,
-		"created_at": created_at.In(loc),
-	}
-
-	return res, nil
-}
-
-func UpdateProduct(product_id int, updateFields map[string]interface{}) (Response, error) {
-	var res Response
-
-	// Load the UTC+8 time zone
-	loc, err := time.LoadLocation("Asia/Shanghai")
-	if err != nil {
-		return res, err
-	}
-
-	// Add or update the 'updated_at' field in the updateFields map
-	updateFields["updated_at"] = time.Now().In(loc)
-	updated_at := updateFields["updated_at"]
-
-	con := db.CreateCon()
-
-	// Construct the SET part of the SQL statement dynamically
-	setStatement := "SET "
-	values := []interface{}{}
-	i := 0
-
-	for fieldName, fieldValue := range updateFields {
-		if i > 0 {
-			setStatement += ", "
+	// Memindai hasil query variant produk dan menyimpannya dalam variabel variants
+	for rows.Next() {
+		var variant ProductDetailVariant
+		err := rows.Scan(
+			&variant.ProductVariantID,
+			&variant.VariantName,
+			&variant.ProductVariantCode,
+			&variant.ProductVariantName,
+			&variant.ProductQuantity,
+			&variant.PurchasePrice,
+			&variant.SalePrice,
+			&variant.Image,
+		)
+		if err != nil {
+			return res, err
 		}
-		setStatement += fieldName + " = ?"
-		values = append(values, fieldValue)
-		i++
+		variants = append(variants, variant)
 	}
 
-	// Construct the final SQL statement
-	sqlStatement := "UPDATE product " + setStatement + " WHERE product_id = ?"
-	values = append(values, product_id)
-
-	stmt, err := con.Prepare(sqlStatement)
-	if err != nil {
-		return res, err
-	}
-
-	result, err := stmt.Exec(values...)
-	if err != nil {
-		return res, err
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return res, err
-	}
+	// Mengisi informasi variant produk ke dalam ProductDetail
+	productDetail.ProductVariant = variants
 
 	res.Data = map[string]interface{}{
-		"rowsAffected": rowsAffected,
-		"updated_at":   updated_at,
+		"product": []ProductDetail{productDetail},
 	}
 
 	return res, nil
 }
 
-func DeleteProduct(product_id int) (Response, error) {
-	var res Response
+// func CreateProduct(
+// 	product_code string,
+// 	product_name string,
+// 	category_id int,
+// 	eceran_id int,
+// 	brand string,
+// 	purchase_price int,
+// 	sale_price int,
+// 	stock int,
+// 	sold int,
+// 	image string,
+// ) (Response, error) {
+// 	var res Response
 
-	con := db.CreateCon()
+// 	con := db.CreateCon()
 
-	sqlStatement := "DELETE FROM product WHERE product_id = ?"
+// 	sqlStatement := "INSERT INTO product (product_code, product_name, category_id, eceran_id, brand, purchase_price, sale_price, stock, sold, image, created_at, updated_at) VALUES ( ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? )"
 
-	stmt, err := con.Prepare(sqlStatement)
+// 	stmt, err := con.Prepare(sqlStatement)
 
-	if err != nil {
-		return res, err
-	}
+// 	if err != nil {
+// 		return res, err
+// 	}
 
-	result, err := stmt.Exec(product_id)
+// 	// Load the UTC+8 time zone
+// 	loc, err := time.LoadLocation("Asia/Shanghai")
+// 	if err != nil {
+// 		return res, err
+// 	}
 
-	if err != nil {
-		return res, err
-	}
+// 	created_at := time.Now()
+// 	updated_at := time.Now()
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return res, err
-	}
+// 	result, err := stmt.Exec(
+// 		product_code,
+// 		product_name,
+// 		category_id,
+// 		eceran_id,
+// 		brand,
+// 		purchase_price,
+// 		sale_price,
+// 		stock,
+// 		sold,
+// 		image,
+// 		created_at,
+// 		updated_at,
+// 	)
 
-	res.Data = map[string]interface{}{
-		"rowsAffected":       rowsAffected,
-		"deleted_product_id": product_id,
-	}
+// 	if err != nil {
+// 		return res, err
+// 	}
 
-	return res, err
-}
+// 	getIdLast, err := result.LastInsertId()
+
+// 	if err != nil {
+// 		return res, err
+// 	}
+
+// 	res.Data = map[string]interface{}{
+// 		"getIdLast":  getIdLast,
+// 		"created_at": created_at.In(loc),
+// 	}
+
+// 	return res, nil
+// }
+
+// func UpdateProduct(product_id int, updateFields map[string]interface{}) (Response, error) {
+// 	var res Response
+
+// 	// Load the UTC+8 time zone
+// 	loc, err := time.LoadLocation("Asia/Shanghai")
+// 	if err != nil {
+// 		return res, err
+// 	}
+
+// 	// Add or update the 'updated_at' field in the updateFields map
+// 	updateFields["updated_at"] = time.Now().In(loc)
+// 	updated_at := updateFields["updated_at"]
+
+// 	con := db.CreateCon()
+
+// 	// Construct the SET part of the SQL statement dynamically
+// 	setStatement := "SET "
+// 	values := []interface{}{}
+// 	i := 0
+
+// 	for fieldName, fieldValue := range updateFields {
+// 		if i > 0 {
+// 			setStatement += ", "
+// 		}
+// 		setStatement += fieldName + " = ?"
+// 		values = append(values, fieldValue)
+// 		i++
+// 	}
+
+// 	// Construct the final SQL statement
+// 	sqlStatement := "UPDATE product " + setStatement + " WHERE product_id = ?"
+// 	values = append(values, product_id)
+
+// 	stmt, err := con.Prepare(sqlStatement)
+// 	if err != nil {
+// 		return res, err
+// 	}
+
+// 	result, err := stmt.Exec(values...)
+// 	if err != nil {
+// 		return res, err
+// 	}
+
+// 	rowsAffected, err := result.RowsAffected()
+// 	if err != nil {
+// 		return res, err
+// 	}
+
+// 	res.Data = map[string]interface{}{
+// 		"rowsAffected": rowsAffected,
+// 		"updated_at":   updated_at,
+// 	}
+
+// 	return res, nil
+// }
+
+// func DeleteProduct(product_id int) (Response, error) {
+// 	var res Response
+
+// 	con := db.CreateCon()
+
+// 	sqlStatement := "DELETE FROM product WHERE product_id = ?"
+
+// 	stmt, err := con.Prepare(sqlStatement)
+
+// 	if err != nil {
+// 		return res, err
+// 	}
+
+// 	result, err := stmt.Exec(product_id)
+
+// 	if err != nil {
+// 		return res, err
+// 	}
+
+// 	rowsAffected, err := result.RowsAffected()
+// 	if err != nil {
+// 		return res, err
+// 	}
+
+// 	res.Data = map[string]interface{}{
+// 		"rowsAffected":       rowsAffected,
+// 		"deleted_product_id": product_id,
+// 	}
+
+// 	return res, err
+// }
