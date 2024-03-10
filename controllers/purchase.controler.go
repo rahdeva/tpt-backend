@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 	"tpt_backend/models"
@@ -86,87 +85,87 @@ func GetPurchasebyID(c echo.Context) error {
 	return c.JSON(http.StatusOK, supplierDetail)
 }
 
-func CreatePurchase(c echo.Context) error {
-	var createRequest models.CreatePurchaseRequest
+// func CreatePurchase(c echo.Context) error {
+// 	var createRequest models.CreatePurchaseRequest
 
-	// Parse the request body to populate the new struct
-	if err := c.Bind(&createRequest); err != nil {
-		return c.JSON(
-			http.StatusBadRequest,
-			map[string]string{
-				"error": "Invalid request body",
-			},
-		)
-	}
+// 	// Parse the request body to populate the new struct
+// 	if err := c.Bind(&createRequest); err != nil {
+// 		return c.JSON(
+// 			http.StatusBadRequest,
+// 			map[string]string{
+// 				"error": "Invalid request body",
+// 			},
+// 		)
+// 	}
 
-	// Call the CreatePurchase function from the models package
-	result, err := models.CreatePurchase(
-		createRequest.UserID,
-		createRequest.SupplierID,
-		createRequest.PurchaseDate,
-		createRequest.TotalItem,
-		createRequest.TotalPrice,
-		createRequest.PurchasesDetail,
-	)
+// 	// Call the CreatePurchase function from the models package
+// 	result, err := models.CreatePurchase(
+// 		createRequest.UserID,
+// 		createRequest.SupplierID,
+// 		createRequest.PurchaseDate,
+// 		createRequest.TotalItem,
+// 		createRequest.TotalPrice,
+// 		createRequest.PurchasesDetail,
+// 	)
 
-	if err != nil {
-		return c.JSON(
-			http.StatusInternalServerError,
-			map[string]string{"message": err.Error()},
-		)
-	}
+// 	if err != nil {
+// 		return c.JSON(
+// 			http.StatusInternalServerError,
+// 			map[string]string{"message": err.Error()},
+// 		)
+// 	}
 
-	return c.JSON(http.StatusOK, result)
-}
+// 	return c.JSON(http.StatusOK, result)
+// }
 
-func UpdatePurchase(c echo.Context) error {
-	// Parse the request body to get the update data
-	var updateRequest models.UpdatePurchaseRequest
-	if err := json.NewDecoder(c.Request().Body).Decode(&updateRequest); err != nil {
-		return c.JSON(
-			http.StatusBadRequest,
-			map[string]string{"message": "Invalid request body"},
-		)
-	}
+// func UpdatePurchase(c echo.Context) error {
+// 	// Parse the request body to get the update data
+// 	var updateRequest models.UpdatePurchaseRequest
+// 	if err := json.NewDecoder(c.Request().Body).Decode(&updateRequest); err != nil {
+// 		return c.JSON(
+// 			http.StatusBadRequest,
+// 			map[string]string{"message": "Invalid request body"},
+// 		)
+// 	}
 
-	// Call the UpdatePurchase function from the models package
-	result, err := models.UpdatePurchase(
-		updateRequest.PurchaseID,
-		updateRequest.SupplierID,
-		updateRequest.PurchaseDate,
-		updateRequest.TotalItem,
-		updateRequest.TotalPrice,
-		updateRequest.PurchasesDetail,
-	)
-	if err != nil {
-		return c.JSON(
-			http.StatusInternalServerError,
-			map[string]string{"message": err.Error()},
-		)
-	}
+// 	// Call the UpdatePurchase function from the models package
+// 	result, err := models.UpdatePurchase(
+// 		updateRequest.PurchaseID,
+// 		updateRequest.SupplierID,
+// 		updateRequest.PurchaseDate,
+// 		updateRequest.TotalItem,
+// 		updateRequest.TotalPrice,
+// 		updateRequest.PurchasesDetail,
+// 	)
+// 	if err != nil {
+// 		return c.JSON(
+// 			http.StatusInternalServerError,
+// 			map[string]string{"message": err.Error()},
+// 		)
+// 	}
 
-	return c.JSON(http.StatusOK, result)
-}
+// 	return c.JSON(http.StatusOK, result)
+// }
 
-func DeletePurchase(c echo.Context) error {
-	purchaseID := c.Param("purchase_id")
+// func DeletePurchase(c echo.Context) error {
+// 	purchaseID := c.Param("purchase_id")
 
-	conv_id, err := strconv.Atoi(purchaseID)
+// 	conv_id, err := strconv.Atoi(purchaseID)
 
-	if err != nil {
-		return c.JSON(
-			http.StatusInternalServerError,
-			map[string]string{"message": err.Error()},
-		)
-	}
+// 	if err != nil {
+// 		return c.JSON(
+// 			http.StatusInternalServerError,
+// 			map[string]string{"message": err.Error()},
+// 		)
+// 	}
 
-	result, err := models.DeletePurchase(conv_id)
-	if err != nil {
-		return c.JSON(
-			http.StatusInternalServerError,
-			map[string]string{"message": err.Error()},
-		)
-	}
+// 	result, err := models.DeletePurchase(conv_id)
+// 	if err != nil {
+// 		return c.JSON(
+// 			http.StatusInternalServerError,
+// 			map[string]string{"message": err.Error()},
+// 		)
+// 	}
 
-	return c.JSON(http.StatusOK, result)
-}
+// 	return c.JSON(http.StatusOK, result)
+// }

@@ -18,7 +18,7 @@ func Init() *echo.Echo {
 	e.GET("/api/v1/product_variants", controllers.GetAllProductVariants)
 	e.GET("/api/v1/products", controllers.GetAllProducts)
 	e.GET("/api/v1/products/:product_id", controllers.GetProductDetail)
-	e.POST("/api/v1/products", controllers.CreateProduct)
+	// e.POST("/api/v1/products", controllers.CreateProduct)
 	// e.PUT("/api/v1/products", controllers.UpdateProduct)
 	// e.DELETE("/api/v1/products/:product_id", controllers.DeleteProduct)
 
@@ -70,17 +70,17 @@ func Init() *echo.Echo {
 	e.GET("/api/v1/sales", controllers.GetAllSales)
 	e.GET("/api/v1/sales/:sale_id", controllers.GetSaleByID)
 	e.GET("/api/v1/sales/detail/:sale_id", controllers.GetSalesDetail)
-	e.POST("/api/v1/sales", controllers.CreateSale)
-	e.PUT("/api/v1/sales", controllers.UpdateSale)
-	e.DELETE("/api/v1/sales/:sale_id", controllers.DeleteSale)
+	// e.POST("/api/v1/sales", controllers.CreateSale)
+	// e.PUT("/api/v1/sales", controllers.UpdateSale)
+	// e.DELETE("/api/v1/sales/:sale_id", controllers.DeleteSale)
 
 	// Purchase
 	e.GET("/api/v1/purchases", controllers.GetAllPurchases)
 	e.GET("/api/v1/purchases/:purchase_id", controllers.GetPurchasebyID)
 	e.GET("/api/v1/purchases/detail/:purchase_id", controllers.GetPurchasesDetail)
-	e.POST("/api/v1/purchases", controllers.CreatePurchase)
-	e.PUT("/api/v1/purchases", controllers.UpdatePurchase)
-	e.DELETE("/api/v1/purchases/:purchase_id", controllers.DeletePurchase)
+	// e.POST("/api/v1/purchases", controllers.CreatePurchase)
+	// e.PUT("/api/v1/purchases", controllers.UpdatePurchase)
+	// e.DELETE("/api/v1/purchases/:purchase_id", controllers.DeletePurchase)
 
 	// Home
 	e.GET("/api/v1/home", controllers.GetHomeData)
