@@ -336,6 +336,7 @@ func GetPurchasebyID(purchaseID int) (Response, error) {
 
 	row := con.QueryRow(sqlStatement, purchaseID)
 
+	// Scan
 	err := row.Scan(
 		&purchase.PurchaseID,
 		&purchase.UserID,
