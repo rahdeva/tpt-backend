@@ -371,7 +371,6 @@ func GetPurchasebyID(purchaseID int) (Response, error) {
 	return res, nil
 }
 
-
 // func CreatePurchase(
 // 	userId int,
 // 	supplierID int,
