@@ -86,6 +86,7 @@ func Init() *echo.Echo {
 	e.GET("/api/v1/home", controllers.GetHomeData)
 
 	// Dashboard
+	e.GET("/api/v1/dashboard/sale/total_sale", controllers.GetTotalSales)
 
 	return e
 }

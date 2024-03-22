@@ -11,22 +11,22 @@ import (
 var db *sql.DB
 var err error
 
-func Init() {
-	conf := config.GetConfig()
+func DBInit() {
+	DBconf := config.GetDBConfig()
 
 	// username:password@protocol(address)/dbname?param=value
-	connectionString := conf.DB_USERNAME + ":" + conf.DB_PASSWORD + "@tcp(" + conf.DB_HOST + ":" + conf.DB_PORT + ")/" + conf.DB_NAME
+	DBconnectionString := DBconf.DB_USERNAME + ":" + DBconf.DB_PASSWORD + "@tcp(" + DBconf.DB_HOST + ":" + DBconf.DB_PORT + ")/" + DBconf.DB_NAME
 
-	db, err = sql.Open("mysql", connectionString+"?parseTime=true")
+	db, err = sql.Open("mysql", DBconnectionString+"?parseTime=true")
 
 	if err != nil {
 		panic("Connection Error")
 	}
 
-	err := db.Ping()
+	err = db.Ping()
 
 	if err != nil {
-		fmt.Println(connectionString)
+		fmt.Println(DBconnectionString)
 		panic("DSN Error")
 	}
 }

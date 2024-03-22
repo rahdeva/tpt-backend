@@ -50,20 +50,6 @@ type UpdateSaleRequest struct {
 	SalesDetail []SaleDetail `json:"sales_detail"`
 }
 
-type EceranProductSale struct {
-	ProductID               int `json:"product_id"`
-	CategoryID              int `json:"category_id"`
-	Stock                   int `json:"stock"`
-	CategoryProductQuantity int `json:"category_product_quantity"`
-}
-
-type ParentEceranProductSale struct {
-	ProductID               int `json:"product_id"`
-	CategoryID              int `json:"category_id"`
-	Stock                   int `json:"stock"`
-	CategoryProductQuantity int `json:"category_product_quantity"`
-}
-
 func GetAllSales(typeName string, page, pageSize int) (Response, error) {
 	objType := reflect.TypeOf(ResponseData(typeName))
 	if objType == nil {
