@@ -85,8 +85,36 @@ func Init() *echo.Echo {
 	// Home
 	e.GET("/api/v1/home", controllers.GetHomeData)
 
-	// Dashboard
+	// Dashboard Summary
+	e.GET("/api/v1/dashboard/summary/total_revenue", controllers.GetProductByCategory)
+	e.GET("/api/v1/dashboard/summary/product_by_category", controllers.GetProductByCategory)
+	e.GET("/api/v1/dashboard/summary/top_stock_product", controllers.GetTopProductStock)
+	e.GET("/api/v1/dashboard/summary/top_expensive_product", controllers.GetTopExpensiveProducts)
+
+	// Dashboard Sale
+	e.GET("/api/v1/dashboard/sale/total_transaction", controllers.GetSalesTransactions)
 	e.GET("/api/v1/dashboard/sale/total_sale", controllers.GetTotalSales)
+	e.GET("/api/v1/dashboard/sale/total_item_sold", controllers.GetTotalItemsSold)
+	e.GET("/api/v1/dashboard/sale/total_profit", controllers.GetTotalProfit)
+	e.GET("/api/v1/dashboard/sale/top_sale_product", controllers.GetTopBestSellingProducts)
+
+	// Dashboard Purchase
+	e.GET("/api/v1/dashboard/purchase/total_transaction", controllers.GetPurchaseTransactions)
+	e.GET("/api/v1/dashboard/purchase/total_purchase", controllers.GetTotalPurchase)
+	e.GET("/api/v1/dashboard/purchase/total_item_purchased", controllers.GetTotalItemsPurchased)
+	e.GET("/api/v1/dashboard/purchase/top_supplier", controllers.GetTopSuppliersByTotalItem)
+
+	// Dashboard Financial
+	// e.GET("/api/v1/dashboard/financial/now_balance", controllers.GetProductByCategory)
+	e.GET("/api/v1/dashboard/financial/cash_in_cash_out", controllers.GetCashFlow)
+	e.GET("/api/v1/dashboard/financial/cash_by_type", controllers.GetFinancialByType)
+	e.GET("/api/v1/dashboard/financial/cash_in", controllers.GetCashIn)
+	e.GET("/api/v1/dashboard/financial/cash_out", controllers.GetCashOut)
+
+	// Dashboard Forecasting
+	e.GET("/api/v1/dashboard/forecasting/sale", controllers.GetProductByCategory)
+	e.GET("/api/v1/dashboard/forecasting/purchase", controllers.GetProductByCategory)
+	e.GET("/api/v1/dashboard/forecasting/mae", controllers.GetProductByCategory)
 
 	return e
 }

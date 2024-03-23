@@ -19,7 +19,6 @@ type ProductVariant struct {
 	ProductQuantity    int       `json:"product_quantity"`
 	PurchasePrice      float64   `json:"purchase_price"`
 	SalePrice          float64   `json:"sale_price"`
-	Sold               int       `json:"sold"`
 	Image              string    `json:"image"`
 	Brand              string    `json:"brand"`
 	VariantStock       int       `json:"variant_stock"`
@@ -113,7 +112,6 @@ func GetAllProductVariants(
 			pv.product_quantity,
 			pv.purchase_price,
 			pv.sale_price,
-			pv.sold,
 			pv.image,
 			p.brand,
 			FLOOR(p.stock / pv.product_quantity) AS variant_stock,
@@ -520,14 +518,13 @@ func GetProductDetail(productID int) (Response, error) {
 // 	purchase_price int,
 // 	sale_price int,
 // 	stock int,
-// 	sold int,
 // 	image string,
 // ) (Response, error) {
 // 	var res Response
 
 // 	con := db.CreateCon()
 
-// 	sqlStatement := "INSERT INTO product (product_code, product_name, category_id, eceran_id, brand, purchase_price, sale_price, stock, sold, image, created_at, updated_at) VALUES ( ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? )"
+// 	sqlStatement := "INSERT INTO product (product_code, product_name, category_id, eceran_id, brand, purchase_price, sale_price, stock, image, created_at, updated_at) VALUES ( ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? )"
 
 // 	stmt, err := con.Prepare(sqlStatement)
 

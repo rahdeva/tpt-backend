@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func GetTotalSales(c echo.Context) error {
+func GetTotalSaaslesass(c echo.Context) error {
 	totalSales, err := models.GetTotalSales()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
