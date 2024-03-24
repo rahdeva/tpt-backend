@@ -40,7 +40,7 @@ type TopBestSellingProducts struct {
 func GetSalesTransactions() (SalesTransactions, error) {
 	var salesTransactions SalesTransactions
 	salesTransactions.Length = 12
-	salesTransactions.Title = "Sales Transactions"
+	salesTransactions.Title = "Jumlah Transaksi Penjualan"
 	salesTransactions.Label = make([]string, 12)
 	salesTransactions.Value = make([]int, 12)
 
@@ -93,7 +93,7 @@ func GetSalesTransactions() (SalesTransactions, error) {
 func GetTotalSales() (TotalSalesResponse, error) {
 	var totalSalesResponse TotalSalesResponse
 	totalSalesResponse.Length = 12
-	totalSalesResponse.Title = "Total Sales"
+	totalSalesResponse.Title = "Total Penjualan"
 	totalSalesResponse.Label = make([]string, 12)
 	totalSalesResponse.Value = make([]int, 12)
 
@@ -144,7 +144,7 @@ func GetTotalSales() (TotalSalesResponse, error) {
 func GetTotalItemsSold() (TotalItemsSold, error) {
 	var totalItemsSoldResponse TotalItemsSold
 	totalItemsSoldResponse.Length = 12
-	totalItemsSoldResponse.Title = "Total Items Sold"
+	totalItemsSoldResponse.Title = "Jumlah Item Terjual"
 	totalItemsSoldResponse.Label = make([]string, 12)
 	totalItemsSoldResponse.Value = make([]int, 12)
 
@@ -246,7 +246,7 @@ func GetTotalProfit() (TotalProfit, error) {
 func GetTopBestSellingProducts() (TopBestSellingProducts, error) {
 	var topBestSellingProducts TopBestSellingProducts
 	topBestSellingProducts.Length = 10
-	topBestSellingProducts.Title = "Top Best Selling Products"
+	topBestSellingProducts.Title = "Top 10 Barang Terlaris"
 	topBestSellingProducts.Label = make([]string, 10)
 	topBestSellingProducts.Value = make([]int, 10)
 

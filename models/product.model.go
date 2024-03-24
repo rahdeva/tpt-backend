@@ -145,7 +145,7 @@ func GetAllProductVariants(
 		%s
 		LIMIT %d OFFSET %d;
 	`, whereClause, pageSize, offset)
-	fmt.Println("SQL Statement:", sqlStatement)
+	// fmt.Println("SQL Statement:", sqlStatement)
 	rows, err := con.Query(sqlStatement)
 	if err != nil {
 		return res, err

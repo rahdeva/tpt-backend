@@ -437,7 +437,7 @@ func CreatePurchase(
 		}
 
 		// Insert into fact_purchase
-		err = InsertIntoFactPurchase(ctx, getIdLast, userId, purchaseDate, totalItem, totalPrice)
+		err = InsertIntoFactPurchase(ctx, getIdLast, userId, supplierID, purchaseDate, totalItem, totalPrice)
 		if err != nil {
 			fmt.Println("Error inserting into fact_purchase:", err)
 			return
@@ -707,14 +707,15 @@ func InsertIntoDimPurchaseDetail(ctx context.Context, purchasesDetail []Purchase
 }
 
 // Fungsi baru untuk menyimpan data ke fact_purchase
-func InsertIntoFactPurchase(ctx context.Context, purchaseID int64, userID int, purchaseDate time.Time, totalItem int, totalPrice int) error {
+func InsertIntoFactPurchase(ctx context.Context, purchaseID int64, userID int, supplierID int, purchaseDate time.Time, totalItem int, totalPrice int) error {
 	// Connect to data warehouse
 	conDW := db.CreateConDW()
 
 	timeID := purchaseDate.Format("20060102")
 
-	_, err := conDW.ExecContext(ctx, "INSERT INTO fact_purchase (purchase_id, user_id, time_id, total_item, total_price) VALUES (?, ?, ?, ?, ?)",
+	_, err := conDW.ExecContext(ctx, "INSERT INTO fact_purchase (purchase_id, supplier_id, user_id, time_id, total_item, total_price) VALUES (?, ?, ?, ?, ?, ?)",
 		purchaseID,
+		supplierID,
 		userID,
 		timeID,
 		totalItem,

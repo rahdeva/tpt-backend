@@ -66,7 +66,7 @@ func GetCashFlow() (CashFlow, error) {
 func GetFinancialByType() (FinancialTransaction, error) {
 	var financialTransactions FinancialTransaction
 	financialTransactions.Length = 0
-	financialTransactions.Title = "Financial Transactions"
+	financialTransactions.Title = "Jenis Keuangan"
 
 	con := db.CreateConDW()
 
@@ -119,7 +119,7 @@ func GetFinancialByType() (FinancialTransaction, error) {
 func GetCashIn() (CashIn, error) {
 	var cashIn CashIn
 	cashIn.Length = 0
-	cashIn.Title = "Cash In"
+	cashIn.Title = "Kas Masuk"
 
 	con := db.CreateConDW()
 
@@ -175,7 +175,7 @@ func GetCashIn() (CashIn, error) {
 func GetCashOut() (CashOut, error) {
 	var cashOut CashOut
 	cashOut.Length = 0
-	cashOut.Title = "Cash Out"
+	cashOut.Title = "Kas Keluar"
 
 	con := db.CreateConDW()
 

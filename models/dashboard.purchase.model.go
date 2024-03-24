@@ -42,7 +42,7 @@ type TopSuppliersByTotalItem struct {
 func GetPurchaseTransactions() (PurchaseTransactions, error) {
 	var purchaseTransactions PurchaseTransactions
 	purchaseTransactions.Length = 12
-	purchaseTransactions.Title = "Purchase Transactions"
+	purchaseTransactions.Title = "Jumlah Transaksi Pembelian"
 	purchaseTransactions.Label = make([]string, 12)
 	purchaseTransactions.Value = make([]int, 12)
 
@@ -95,7 +95,7 @@ func GetPurchaseTransactions() (PurchaseTransactions, error) {
 func GetTotalPurchase() (TotalPurchase, error) {
 	var totalPurchase TotalPurchase
 	totalPurchase.Length = 12
-	totalPurchase.Title = "Total Purchase"
+	totalPurchase.Title = "Total Pembelian"
 	totalPurchase.Label = make([]string, 12)
 	totalPurchase.Value = make([]int, 12)
 
@@ -148,7 +148,7 @@ func GetTotalPurchase() (TotalPurchase, error) {
 func GetTotalItemsPurchased() (TotalItemsPurchased, error) {
 	var totalItemsPurchasedResponse TotalItemsPurchased
 	totalItemsPurchasedResponse.Length = 12
-	totalItemsPurchasedResponse.Title = "Total Items Purchased"
+	totalItemsPurchasedResponse.Title = "Jumlah Item Terbeli"
 	totalItemsPurchasedResponse.Label = make([]string, 12)
 	totalItemsPurchasedResponse.Value = make([]int, 12)
 
@@ -250,7 +250,7 @@ func GetTopSuppliersByTransaction() (TopSuppliersByTransaction, error) {
 func GetTopSuppliersByTotalItem() (TopSuppliersByTotalItem, error) {
 	var topSuppliersByTotalItem TopSuppliersByTotalItem
 	topSuppliersByTotalItem.Length = 5
-	topSuppliersByTotalItem.Title = "Top Suppliers by Total Item Purchased"
+	topSuppliersByTotalItem.Title = "Top 5 Supplier berdasarkan Total Item Terbeli"
 	topSuppliersByTotalItem.Label = make([]string, 5)
 	topSuppliersByTotalItem.Value = make([]int, 5)
 

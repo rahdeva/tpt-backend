@@ -29,7 +29,7 @@ type TopExpensiveProducts struct {
 func GetProductByCategory() (ProductByCategory, error) {
 	var productByCategory ProductByCategory
 	productByCategory.Length = 4
-	productByCategory.Title = "Product by Category"
+	productByCategory.Title = "Jumlah Barang\nberdasarkan Kategori"
 	productByCategory.Label = make([]string, 4)
 	productByCategory.Value = make([]int, 4)
 
@@ -75,7 +75,7 @@ func GetProductByCategory() (ProductByCategory, error) {
 func GetTopProductStock() (TopProductStock, error) {
 	var topProducts TopProductStock
 	topProducts.Length = 5
-	topProducts.Title = "Top 5 Products by Ending Stock"
+	topProducts.Title = "Top 5 Barang dengan Stok Akhir Terbanyak"
 	topProducts.Label = make([]string, 5)
 	topProducts.Value = make([]int, 5)
 
@@ -120,7 +120,7 @@ func GetTopProductStock() (TopProductStock, error) {
 func GetTopExpensiveProducts() (TopExpensiveProducts, error) {
 	var topExpensiveProducts TopExpensiveProducts
 	topExpensiveProducts.Length = 5 // Ubah ke 1 jika hanya ingin satu produk teratas
-	topExpensiveProducts.Title = "Top Products by Sale Price"
+	topExpensiveProducts.Title = "Top 5 Barang Harga Termahal"
 	topExpensiveProducts.Label = make([]string, 5) // Ubah ke 1 jika hanya ingin satu produk teratas
 	topExpensiveProducts.Value = make([]int, 5)    // Ubah ke 1 jika hanya ingin satu produk teratas
 
