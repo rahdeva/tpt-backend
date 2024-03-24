@@ -691,21 +691,31 @@ func CreateProduct(
 // 	return res, nil
 // }
 
-func DeleteProduct(product_id int) (Response, error) {
+func DeleteProduct(productID int) (Response, error) {
 	var res Response
 
 	con := db.CreateCon()
 
-	sqlStatement := "DELETE FROM product WHERE product_id = ?"
-
-	stmt, err := con.Prepare(sqlStatement)
-
+	// Delete entries from product_variant table based on product_id
+	sqlVariantStatement := "DELETE FROM product_variant WHERE product_id = ?"
+	stmtVariant, err := con.Prepare(sqlVariantStatement)
 	if err != nil {
 		return res, err
 	}
 
-	result, err := stmt.Exec(product_id)
+	resultVariant, err := stmtVariant.Exec(productID)
+	if err != nil {
+		return res, err
+	}
 
+	// Delete entry from product table based on product_id
+	sqlStatement := "DELETE FROM product WHERE product_id = ?"
+	stmt, err := con.Prepare(sqlStatement)
+	if err != nil {
+		return res, err
+	}
+
+	result, err := stmt.Exec(productID)
 	if err != nil {
 		return res, err
 	}
@@ -715,10 +725,17 @@ func DeleteProduct(product_id int) (Response, error) {
 		return res, err
 	}
 
-	res.Data = map[string]interface{}{
-		"rowsAffected":       rowsAffected,
-		"deleted_product_id": product_id,
+	// Get rows affected for product_variant deletion
+	rowsAffectedVariant, err := resultVariant.RowsAffected()
+	if err != nil {
+		return res, err
 	}
 
-	return res, err
+	res.Data = map[string]interface{}{
+		"rowsAffected_product":         rowsAffected,
+		"rowsAffected_product_variant": rowsAffectedVariant,
+		"deleted_product_id":           productID,
+	}
+
+	return res, nil
 }
