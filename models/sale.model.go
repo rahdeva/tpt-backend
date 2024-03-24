@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"time"
@@ -41,14 +42,14 @@ type CreateSaleRequest struct {
 	SalesDetail []SaleDetail `json:"sales_detail"`
 }
 
-type UpdateSaleRequest struct {
-	SaleID      int          `json:"sale_id"`
-	UserID      int          `json:"user_id"`
-	SaleDate    time.Time    `json:"sale_date"`
-	TotalItem   int          `json:"total_item"`
-	TotalPrice  int          `json:"total_price"`
-	SalesDetail []SaleDetail `json:"sales_detail"`
-}
+// type UpdateSaleRequest struct {
+// 	SaleID      int          `json:"sale_id"`
+// 	UserID      int          `json:"user_id"`
+// 	SaleDate    time.Time    `json:"sale_date"`
+// 	TotalItem   int          `json:"total_item"`
+// 	TotalPrice  int          `json:"total_price"`
+// 	SalesDetail []SaleDetail `json:"sales_detail"`
+// }
 
 func GetAllSales(typeName string, page, pageSize int) (Response, error) {
 	objType := reflect.TypeOf(ResponseData(typeName))
@@ -351,385 +352,385 @@ func GetSaleByID(saleID int) (Response, error) {
 	return res, nil
 }
 
-// func CreateSale(
-// 	userId int,
-// 	saleDate time.Time,
-// 	totalItem int,
-// 	totalPrice int,
-// 	salesDetail []SaleDetail,
-// ) (Response, error) {
-// 	var res Response
-
-// 	con := db.CreateCon()
-
-// 	sqlStatement := "INSERT INTO sale (user_id, sale_date, total_item, total_price, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
-
-// 	stmt, err := con.Prepare(sqlStatement)
-
-// 	if err != nil {
-// 		return res, err
-// 	}
-
-// 	created_at := time.Now()
-// 	updated_at := time.Now()
-
-// 	result, err := stmt.Exec(
-// 		userId,
-// 		saleDate,
-// 		totalItem,
-// 		totalPrice,
-// 		created_at,
-// 		updated_at,
-// 	)
-
-// 	if err != nil {
-// 		return res, err
-// 	}
-
-// 	getIdLast, err := result.LastInsertId()
-
-// 	if err != nil {
-// 		return res, err
-// 	}
-
-// 	// Insert purchase details
-// 	for _, detail := range salesDetail {
-// 		// Assuming purchase_id is obtained from the created purchase
-// 		sqlDetailStatement := "INSERT INTO sale_detail (sale_id, product_id, sale_price, quantity, subtotal, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
-// 		detailStmt, err := con.Prepare(sqlDetailStatement)
-// 		if err != nil {
-// 			return res, err
-// 		}
-
-// 		detailResult, err := detailStmt.Exec(
-// 			getIdLast, // using the sale_id obtained earlier
-// 			detail.ProductID,
-// 			detail.SalePrice,
-// 			detail.Quantity,
-// 			detail.Subtotal,
-// 			created_at,
-// 			updated_at,
-// 		)
-
-// 		if err != nil {
-// 			return res, err
-// 		}
-
-// 		// Update product stock
-// 		err = updateProductStockSale(detail.ProductID, detail.Quantity)
-// 		if err != nil {
-// 			return res, err
-// 		}
-
-// 		println(detail.EceranID)
-
-// 		if detail.EceranID != 0 {
-// 			eceranProduct := getEceranProductSale(detail.ProductID)
-// 			println(detail.Quantity)
-// 			println(eceranProduct.CategoryProductQuantity)
-// 			err = updateProductStockSale(detail.EceranID, detail.Quantity*eceranProduct.CategoryProductQuantity)
-// 			if err != nil {
-// 				return res, err
-// 			}
-// 		}
-
-// 		if detail.EceranID == 0 {
-// 			eceranProduct := getEceranProductSale(detail.ProductID)
-// 			parentEceranProduct := getParentEceranProductSale(detail.ProductID)
-// 			println(eceranProduct.Stock)
-// 			println(parentEceranProduct.Stock)
-// 			println(parentEceranProduct.CategoryProductQuantity)
-// 			if eceranProduct.Stock < parentEceranProduct.Stock*parentEceranProduct.CategoryProductQuantity {
-// 				err = updateProductStockSale(parentEceranProduct.ProductID, 1)
-// 				if err != nil {
-// 					return res, err
-// 				}
-// 			}
-// 		}
-
-// 		// Use the detail result or handle as needed
-// 		_ = detailResult
-// 	}
-
-// 	res.Data = map[string]interface{}{
-// 		"sale_id":     getIdLast,
-// 		"user_id":     userId,
-// 		"sale_date":   saleDate,
-// 		"total_item":  totalItem,
-// 		"total_price": totalPrice,
-// 		"created_at":  created_at,
-// 		"updated_at":  updated_at,
-// 	}
-
-// 	return res, nil
-// }
-
-// func updateProductStockSale(productID, quantity int) error {
-// 	con := db.CreateCon()
-
-// 	// Assuming you have a table named "products" with a column "stock"
-// 	sqlStatement := "UPDATE product SET stock = stock - ? WHERE product_id = ?"
-
-// 	stmt, err := con.Prepare(sqlStatement)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer stmt.Close()
-
-// 	_, err = stmt.Exec(quantity, productID)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	return nil
-// }
-
-// func getEceranProductSale(eceranID int) EceranProductSale {
-// 	var eceranProduct EceranProductSale
-
-// 	con := db.CreateCon()
-
-// 	sqlStatement := `
-// 		SELECT
-// 			p.product_id,
-// 			p.category_id,
-// 			p.stock,
-// 			c.category_product_quantity
-// 		FROM
-// 			product p
-// 		JOIN
-// 			category c ON p.category_id = c.category_id
-// 		WHERE
-// 			p.product_id = ?;
-// 	`
-
-// 	row := con.QueryRow(sqlStatement, eceranID)
-
-// 	row.Scan(
-// 		&eceranProduct.ProductID,
-// 		&eceranProduct.CategoryID,
-// 		&eceranProduct.Stock,
-// 		&eceranProduct.CategoryProductQuantity,
-// 	)
-
-// 	return eceranProduct
-// }
-
-// func getParentEceranProductSale(eceranID int) ParentEceranProductSale {
-// 	var parentEceranProduct ParentEceranProductSale
-
-// 	con := db.CreateCon()
-
-// 	sqlStatement := `
-// 			SELECT
-// 				p.product_id,
-// 				p.category_id,
-// 				p.stock,
-// 				c.category_product_quantity
-// 			FROM
-// 				product p
-// 			JOIN
-// 				category c ON p.category_id = c.category_id
-// 			WHERE
-// 				p.eceran_id = ?;
-// 		`
-
-// 	row := con.QueryRow(sqlStatement, eceranID)
-
-// 	row.Scan(
-// 		&parentEceranProduct.ProductID,
-// 		&parentEceranProduct.CategoryID,
-// 		&parentEceranProduct.Stock,
-// 		&parentEceranProduct.CategoryProductQuantity,
-// 	)
-
-// 	return parentEceranProduct
-// }
-
-// func UpdateSale(
-// 	saleID int,
-// 	userID int,
-// 	saleDate time.Time,
-// 	totalItem int,
-// 	totalPrice int,
-// 	salesDetail []SaleDetail,
-// ) (Response, error) {
-// 	var res Response
-
-// 	con := db.CreateCon()
-
-// 	// Load the UTC+8 time zone
-// 	loc, err := time.LoadLocation("Asia/Shanghai")
-// 	if err != nil {
-// 		return res, err
-// 	}
-
-// 	// Construct the SET part of the SQL statement for updating the sale
-// 	setSaleStatement := "SET user_id = ?, sale_date = ?, total_item = ?, total_price = ?, updated_at = ?"
-// 	values := []interface{}{userID, saleDate, totalItem, totalPrice, time.Now()}
-
-// 	// Construct the final SQL statement for updating the sale
-// 	sqlSaleStatement := "UPDATE sale " + setSaleStatement + " WHERE sale_id = ?"
-// 	values = append(values, saleID)
-
-// 	// Execute the SQL statement to update the sale
-// 	stmtSale, err := con.Prepare(sqlSaleStatement)
-// 	if err != nil {
-// 		return res, err
-// 	}
-
-// 	resultSale, err := stmtSale.Exec(values...)
-// 	if err != nil {
-// 		return res, err
-// 	}
-
-// 	// Retrieve the number of rows affected in the sale update
-// 	rowsAffectedSale, err := resultSale.RowsAffected()
-// 	if err != nil {
-// 		return res, err
-// 	}
-
-// 	// Get existing sale details
-// 	existingDetails, err := getExistingSaleDetails(saleID)
-// 	if err != nil {
-// 		return res, err
-// 	}
-
-// 	// Iterate over existing sale details and mark those to be deleted
-// 	detailsToDelete := make(map[int]bool)
-// 	for _, existingDetail := range existingDetails {
-// 		detailsToDelete[existingDetail.SaleDetailID] = true
-// 	}
-
-// 	// Iterate over sale details and update or insert them
-// 	for _, detail := range salesDetail {
-// 		if detail.SaleDetailID > 0 {
-// 			// Mark existing detail as not to be deleted
-// 			delete(detailsToDelete, detail.SaleDetailID)
-
-// 			// Update existing sale detail
-// 			sqlDetailStatement := `
-// 				UPDATE sale_detail
-// 				SET sale_price = ?, quantity = ?, subtotal = ?, updated_at = ?
-// 				WHERE sale_detail_id = ?
-// 			`
-// 			valuesDetail := []interface{}{detail.SalePrice, detail.Quantity, detail.Subtotal, time.Now(), detail.SaleDetailID}
-// 			_, err := con.Exec(sqlDetailStatement, valuesDetail...)
-// 			if err != nil {
-// 				return res, err
-// 			}
-// 		} else {
-// 			// Insert new sale detail
-// 			sqlDetailStatement := `
-// 				INSERT INTO sale_detail (sale_id, product_id, sale_price, quantity, subtotal, created_at, updated_at)
-// 				VALUES (?, ?, ?, ?, ?, ?, ?)
-// 			`
-// 			valuesDetail := []interface{}{saleID, detail.ProductID, detail.SalePrice, detail.Quantity, detail.Subtotal, time.Now(), time.Now()}
-// 			_, err := con.Exec(sqlDetailStatement, valuesDetail...)
-// 			if err != nil {
-// 				return res, err
-// 			}
-// 		}
-// 	}
-
-// 	// Delete details that are not present in the request
-// 	for detailID := range detailsToDelete {
-// 		sqlDeleteDetail := "DELETE FROM sale_detail WHERE sale_detail_id = ?"
-// 		_, err := con.Exec(sqlDeleteDetail, detailID)
-// 		if err != nil {
-// 			return res, err
-// 		}
-// 	}
-
-// 	res.Data = map[string]interface{}{
-// 		"rowsAffectedSale": rowsAffectedSale,
-// 		"updated_at":       time.Now().In(loc),
-// 	}
-
-// 	return res, nil
-// }
-
-// func getExistingSaleDetails(saleID int) ([]SaleDetail, error) {
-// 	con := db.CreateCon()
-
-// 	// Fetch existing sale details for the given sale ID
-// 	sqlStatement := "SELECT sale_detail_id, product_id, sale_price, quantity, subtotal FROM sale_detail WHERE sale_id = ?"
-// 	rows, err := con.Query(sqlStatement, saleID)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	defer rows.Close()
-
-// 	// Iterate over rows and populate the existing details
-// 	var existingDetails []SaleDetail
-// 	for rows.Next() {
-// 		var detail SaleDetail
-// 		if err := rows.Scan(&detail.SaleDetailID, &detail.ProductID, &detail.SalePrice, &detail.Quantity, &detail.Subtotal); err != nil {
-// 			return nil, err
-// 		}
-// 		existingDetails = append(existingDetails, detail)
-// 	}
-
-// 	return existingDetails, nil
-// }
-
-// func DeleteSale(saleID int) (Response, error) {
-// 	var res Response
-
-// 	con := db.CreateCon()
-
-// 	// Begin a transaction
-// 	tx, err := con.Begin()
-// 	if err != nil {
-// 		return res, err
-// 	}
-
-// 	// Defer a function to handle rollback in case of an error
-// 	defer func() {
-// 		if err != nil {
-// 			_ = tx.Rollback()
-// 		}
-// 	}()
-
-// 	// Delete from purchase_detail first
-// 	sqlDetailStatement := "DELETE FROM sale_detail WHERE sale_id = ?"
-// 	detailStmt, err := tx.Prepare(sqlDetailStatement)
-// 	if err != nil {
-// 		return res, err
-// 	}
-
-// 	_, err = detailStmt.Exec(saleID)
-// 	if err != nil {
-// 		return res, err
-// 	}
-
-// 	// Delete from purchase
-// 	sqlStatement := "DELETE FROM sale WHERE sale_id = ?"
-// 	stmt, err := tx.Prepare(sqlStatement)
-// 	if err != nil {
-// 		return res, err
-// 	}
-
-// 	result, err := stmt.Exec(saleID)
-// 	if err != nil {
-// 		return res, err
-// 	}
-
-// 	// Commit the transaction
-// 	err = tx.Commit()
-// 	if err != nil {
-// 		return res, err
-// 	}
-
-// 	rowsAffected, err := result.RowsAffected()
-// 	if err != nil {
-// 		return res, err
-// 	}
-
-// 	res.Data = map[string]interface{}{
-// 		"rowsAffected":    rowsAffected,
-// 		"deleted_sale_id": saleID,
-// 	}
-
-// 	return res, nil
-// }
+func CreateSale(
+	userId int,
+	saleDate time.Time,
+	totalItem int,
+	totalPrice int,
+	salesDetail []SaleDetail,
+) (Response, error) {
+	var res Response
+
+	con := db.CreateCon()
+
+	sqlStatement := "INSERT INTO sale (user_id, sale_date, total_item, total_price, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
+
+	stmt, err := con.Prepare(sqlStatement)
+
+	if err != nil {
+		return res, err
+	}
+
+	created_at := time.Now()
+	updated_at := time.Now()
+
+	result, err := stmt.Exec(
+		userId,
+		saleDate,
+		totalItem,
+		totalPrice,
+		created_at,
+		updated_at,
+	)
+
+	if err != nil {
+		return res, err
+	}
+
+	getIdLast, err := result.LastInsertId()
+
+	if err != nil {
+		return res, err
+	}
+
+	// Insert purchase details
+	for _, detail := range salesDetail {
+		// Assuming purchase_id is obtained from the created purchase
+		sqlDetailStatement := "INSERT INTO sale_detail (sale_id, product_variant_id, sale_price, quantity, subtotal, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+		detailStmt, err := con.Prepare(sqlDetailStatement)
+		if err != nil {
+			return res, err
+		}
+
+		detailResult, err := detailStmt.Exec(
+			getIdLast,
+			detail.ProductVariantID,
+			detail.SalePrice,
+			detail.Quantity,
+			detail.Subtotal,
+			created_at,
+			updated_at,
+		)
+
+		if err != nil {
+			return res, err
+		}
+
+		_ = detailResult
+	}
+
+	// Fetch purchase_price from product_variant
+	var purchasePrice int
+	var profit int
+	for _, detail := range salesDetail {
+		err = con.QueryRow("SELECT purchase_price FROM product_variant WHERE product_variant_id = ?", detail.ProductVariantID).Scan(&purchasePrice)
+		// Calculate profit
+		profit = detail.SalePrice - purchasePrice
+	}
+
+	if err != nil {
+		return res, err
+	}
+
+	// Launch goroutine to insert data into dim_sale_detail and fact_sale asynchronously
+	go func(ctx context.Context) {
+		// Insert into dim_sale_detail
+		err = InsertIntoDimSaleDetail(ctx, salesDetail, getIdLast)
+		if err != nil {
+			fmt.Println("Error inserting into dim_sale_detail:", err)
+			return
+		}
+
+		// Insert into fact_sale
+		err = InsertIntoFactSale(ctx, getIdLast, userId, saleDate, totalItem, totalPrice, profit)
+		if err != nil {
+			fmt.Println("Error inserting into fact_sale:", err)
+			return
+		}
+	}(context.Background())
+
+	// Update product stock
+	for _, detail := range salesDetail {
+		// Assuming product_variant_id corresponds to product_id
+		sqlUpdateStock := `
+			UPDATE product p 
+			JOIN product_variant pv 
+			ON p.product_id = pv.product_id 
+			SET p.stock = p.stock - ? * pv.product_quantity 
+			WHERE pv.product_variant_id = ?
+		`
+		updateStmt, err := con.Prepare(sqlUpdateStock)
+		if err != nil {
+			return res, err
+		}
+
+		_, err = updateStmt.Exec(detail.Quantity, detail.ProductVariantID)
+		if err != nil {
+			return res, err
+		}
+	}
+
+	res.Data = map[string]interface{}{
+		"sale_id":     getIdLast,
+		"user_id":     userId,
+		"sale_date":   saleDate,
+		"total_item":  totalItem,
+		"total_price": totalPrice,
+		"created_at":  created_at,
+		"updated_at":  updated_at,
+	}
+
+	return res, nil
+}
+
+func UpdateSale(
+	saleID int,
+	userID int,
+	saleDate time.Time,
+	totalItem int,
+	totalPrice int,
+	salesDetail []SaleDetail,
+) (Response, error) {
+	var res Response
+
+	con := db.CreateCon()
+
+	// Load the UTC+8 time zone
+	loc, err := time.LoadLocation("Asia/Shanghai")
+	if err != nil {
+		return res, err
+	}
+
+	// Construct the SET part of the SQL statement for updating the sale
+	setSaleStatement := "SET user_id = ?, sale_date = ?, total_item = ?, total_price = ?, updated_at = ?"
+	values := []interface{}{userID, saleDate, totalItem, totalPrice, time.Now()}
+
+	// Construct the final SQL statement for updating the sale
+	sqlSaleStatement := "UPDATE sale " + setSaleStatement + " WHERE sale_id = ?"
+	values = append(values, saleID)
+
+	// Execute the SQL statement to update the sale
+	stmtSale, err := con.Prepare(sqlSaleStatement)
+	if err != nil {
+		return res, err
+	}
+
+	resultSale, err := stmtSale.Exec(values...)
+	if err != nil {
+		return res, err
+	}
+
+	// Retrieve the number of rows affected in the sale update
+	rowsAffectedSale, err := resultSale.RowsAffected()
+	if err != nil {
+		return res, err
+	}
+
+	// Get existing sale details
+	existingDetails, err := getExistingSaleDetails(saleID)
+	if err != nil {
+		return res, err
+	}
+
+	// Iterate over existing sale details and mark those to be deleted
+	detailsToDelete := make(map[int]bool)
+	for _, existingDetail := range existingDetails {
+		detailsToDelete[existingDetail.SaleDetailID] = true
+	}
+
+	// Iterate over sale details and update or insert them
+	for _, detail := range salesDetail {
+		if detail.SaleDetailID > 0 {
+			// Mark existing detail as not to be deleted
+			delete(detailsToDelete, detail.SaleDetailID)
+
+			// Update existing sale detail
+			sqlDetailStatement := `
+				UPDATE sale_detail
+				SET sale_price = ?, quantity = ?, subtotal = ?, updated_at = ?
+				WHERE sale_detail_id = ?
+			`
+			valuesDetail := []interface{}{detail.SalePrice, detail.Quantity, detail.Subtotal, time.Now(), detail.SaleDetailID}
+			_, err := con.Exec(sqlDetailStatement, valuesDetail...)
+			if err != nil {
+				return res, err
+			}
+		} else {
+			// Insert new sale detail
+			sqlDetailStatement := `
+				INSERT INTO sale_detail (sale_id, product_id, sale_price, quantity, subtotal, created_at, updated_at)
+				VALUES (?, ?, ?, ?, ?, ?, ?)
+			`
+			valuesDetail := []interface{}{saleID, detail.ProductVariantID, detail.SalePrice, detail.Quantity, detail.Subtotal, time.Now(), time.Now()}
+			_, err := con.Exec(sqlDetailStatement, valuesDetail...)
+			if err != nil {
+				return res, err
+			}
+		}
+	}
+
+	// Delete details that are not present in the request
+	for detailID := range detailsToDelete {
+		sqlDeleteDetail := "DELETE FROM sale_detail WHERE sale_detail_id = ?"
+		_, err := con.Exec(sqlDeleteDetail, detailID)
+		if err != nil {
+			return res, err
+		}
+	}
+
+	res.Data = map[string]interface{}{
+		"rowsAffectedSale": rowsAffectedSale,
+		"updated_at":       time.Now().In(loc),
+	}
+
+	return res, nil
+}
+
+func getExistingSaleDetails(saleID int) ([]SaleDetail, error) {
+	con := db.CreateCon()
+
+	// Fetch existing sale details for the given sale ID
+	sqlStatement := "SELECT sale_detail_id, product_id, sale_price, quantity, subtotal FROM sale_detail WHERE sale_id = ?"
+	rows, err := con.Query(sqlStatement, saleID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Iterate over rows and populate the existing details
+	var existingDetails []SaleDetail
+	for rows.Next() {
+		var detail SaleDetail
+		if err := rows.Scan(&detail.SaleDetailID, &detail.ProductVariantID, &detail.SalePrice, &detail.Quantity, &detail.Subtotal); err != nil {
+			return nil, err
+		}
+		existingDetails = append(existingDetails, detail)
+	}
+
+	return existingDetails, nil
+}
+
+func DeleteSale(saleID int) (Response, error) {
+	var res Response
+
+	con := db.CreateCon()
+
+	// Begin a transaction
+	tx, err := con.Begin()
+	if err != nil {
+		return res, err
+	}
+
+	// Defer a function to handle rollback in case of an error
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
+
+	// Delete from purchase_detail first
+	sqlDetailStatement := "DELETE FROM sale_detail WHERE sale_id = ?"
+	detailStmt, err := tx.Prepare(sqlDetailStatement)
+	if err != nil {
+		return res, err
+	}
+
+	_, err = detailStmt.Exec(saleID)
+	if err != nil {
+		return res, err
+	}
+
+	// Delete from purchase
+	sqlStatement := "DELETE FROM sale WHERE sale_id = ?"
+	stmt, err := tx.Prepare(sqlStatement)
+	if err != nil {
+		return res, err
+	}
+
+	result, err := stmt.Exec(saleID)
+	if err != nil {
+		return res, err
+	}
+
+	// Commit the transaction
+	err = tx.Commit()
+	if err != nil {
+		return res, err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return res, err
+	}
+
+	res.Data = map[string]interface{}{
+		"rowsAffected":    rowsAffected,
+		"deleted_sale_id": saleID,
+	}
+
+	return res, nil
+}
+
+// Fungsi baru untuk menyimpan data ke dim_sale_detail
+func InsertIntoDimSaleDetail(ctx context.Context, salesDetail []SaleDetail, getIdLast int64) error {
+	// Connect to data warehouse
+	conDW := db.CreateConDW()
+
+	for _, detail := range salesDetail {
+		// Check if context is cancelled
+		select {
+		case <-ctx.Done():
+			fmt.Println("Context cancelled. Exiting function InsertIntoDimSaleDetail.")
+			return ctx.Err() // Return context error
+		default:
+			// Continue processing
+		}
+
+		// Replace the placeholders below with appropriate column names and values
+		sqlDimDetailStatement := "INSERT INTO dim_sale_detail (sale_id, product_variant_id, sale_price, quantity, subtotal) VALUES (?, ?, ?, ?, ?)"
+		dimDetailStmt, err := conDW.Prepare(sqlDimDetailStatement)
+		if err != nil {
+			fmt.Println("Error preparing statement for dim_sale_detail:", err)
+			return err
+		}
+		_, err = dimDetailStmt.ExecContext(ctx,
+			getIdLast,
+			detail.ProductVariantID,
+			detail.SalePrice,
+			detail.Quantity,
+			detail.Subtotal,
+		)
+		if err != nil {
+			fmt.Println("Error inserting into dim_sale_detail:", err)
+			return err
+		}
+
+		// Simulating the insertion process
+		fmt.Println("Inserted into dim_sale_detail:", getIdLast, detail.ProductVariantID, detail.SalePrice, detail.Quantity, detail.Subtotal)
+	}
+	return nil
+}
+
+// Fungsi baru untuk menyimpan data ke fact_sale
+func InsertIntoFactSale(ctx context.Context, saleID int64, userID int, saleDate time.Time, totalItem int, totalPrice int, profit int) error {
+	// Connect to data warehouse
+	conDW := db.CreateConDW()
+
+	timeID := saleDate.Format("20060102")
+
+	_, err := conDW.ExecContext(ctx, "INSERT INTO fact_sale (sale_id, user_id, time_id, total_item, total_price, profit) VALUES (?, ?, ?, ?, ?, ?)",
+		saleID,
+		userID,
+		timeID,
+		totalItem,
+		totalPrice,
+		profit,
+	)
+	if err != nil {
+		fmt.Println("Error inserting into fact_sale:", err)
+		return err
+	}
+	fmt.Println("Inserted into fact_sale:", saleID, userID, timeID, totalItem, totalPrice, profit)
+
+	return nil
+}

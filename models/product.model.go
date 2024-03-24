@@ -502,9 +502,11 @@ func GetProductDetail(productID int) (Response, error) {
 	// Mengisi informasi variant produk ke dalam ProductDetail
 	productDetail.ProductVariant = variants
 
+	// Mengatur respons dengan data dan tanpa error
 	res.Data = map[string]interface{}{
-		"product": []ProductDetail{productDetail},
+		"product": productDetail,
 	}
+	res.Error = ""
 
 	return res, nil
 }

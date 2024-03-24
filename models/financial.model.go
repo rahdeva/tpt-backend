@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"time"
@@ -311,6 +312,18 @@ func CreateFinancial(
 		return res, err
 	}
 
+	// Launch goroutine to insert data into fact_financial asynchronously
+	go func(ctx context.Context) {
+		err := InsertIntoFactFinancial(ctx, financialTypeID, userID, financialDate, cashIn, cashOut, balance)
+		if err != nil {
+			fmt.Println("Error inserting into fact_financial:", err)
+		}
+	}(context.Background())
+
+	if err != nil {
+		return res, err
+	}
+
 	res.Data = map[string]interface{}{
 		"getIdLast":  getIdLast,
 		"created_at": created_at.In(loc),
@@ -405,4 +418,28 @@ func DeleteFinancial(financialID int) (Response, error) {
 	}
 
 	return res, err
+}
+
+// Fungsi baru untuk menyimpan data ke fact_financial
+func InsertIntoFactFinancial(ctx context.Context, financialTypeID int, userID int, financialDate time.Time, cashIn int, cashOut int, balance int) error {
+	// Connect to data warehouse
+	conDW := db.CreateConDW()
+
+	timeID := financialDate.Format("20060102")
+
+	_, err := conDW.ExecContext(ctx, "INSERT INTO fact_financial (financial_type_id, user_id, time_id, cash_in, cash_out, balance) VALUES (?, ?, ?, ?, ?, ?)",
+		financialTypeID,
+		userID,
+		timeID,
+		cashIn,
+		cashOut,
+		balance,
+	)
+	if err != nil {
+		fmt.Println("Error inserting into fact_financial:", err)
+		return err
+	}
+	fmt.Println("Inserted into fact_financial:", financialTypeID, userID, timeID, cashIn, cashOut, balance)
+
+	return nil
 }
