@@ -64,6 +64,25 @@ type ProductDetailVariant struct {
 	Image              string  `json:"image"`
 }
 
+type ProductVariantAdd struct {
+	VariantName        string `json:"variant_name"`
+	ProductVariantCode string `json:"product_variant_code"`
+	ProductVariantName string `json:"product_variant_name"`
+	ProductQuantity    int    `json:"product_quantity"`
+	PurchasePrice      int    `json:"purchase_price"`
+	SalePrice          int    `json:"sale_price"`
+	Image              string `json:"image"`
+}
+
+type CreateProductRequest struct {
+	ProductName string              `json:"product_name"`
+	CategoryID  int                 `json:"category_id"`
+	Unit        string              `json:"unit"`
+	Stock       int                 `json:"stock"`
+	Brand       string              `json:"brand"`
+	Variants    []ProductVariantAdd `json:"variants"`
+}
+
 func GetAllProductVariants(
 	typeName string,
 	page,
@@ -239,6 +258,7 @@ func GetAllProducts(
 	pageSize int,
 	keyword string,
 	categoryID int,
+	sort string,
 ) (Response, error) {
 	objType := reflect.TypeOf(ResponseData(typeName))
 	if objType == nil {
@@ -267,6 +287,21 @@ func GetAllProducts(
 		whereClause = " WHERE " + strings.Join(conditions, " AND ")
 	}
 
+	var orderBy string
+	if sort != "" {
+		switch sort {
+		case "asc":
+			orderBy = "p.stock ASC"
+		case "desc":
+			orderBy = "p.stock DESC"
+		default:
+			orderBy = "p.product_id ASC"
+		}
+	}
+	if sort == "" {
+		orderBy = "p.product_id ASC"
+	}
+
 	// Calculate the offset based on the page number and page size
 	offset := (page - 1) * pageSize
 	sqlStatement := fmt.Sprintf(`
@@ -290,8 +325,10 @@ func GetAllProducts(
 		%s
 		GROUP BY
 			p.product_id, c.category_name, p.product_name, p.unit, p.brand, p.created_at, p.updated_at
-		LIMIT %d OFFSET %d;
-	`, whereClause, pageSize, offset)
+		ORDER BY
+            %s
+        LIMIT %d OFFSET %d;
+    `, whereClause, orderBy, pageSize, offset)
 	rows, err := con.Query(sqlStatement)
 	if err != nil {
 		return res, err
@@ -511,70 +548,92 @@ func GetProductDetail(productID int) (Response, error) {
 	return res, nil
 }
 
-// func CreateProduct(
-// 	product_code string,
-// 	product_name string,
-// 	category_id int,
-// 	eceran_id int,
-// 	brand string,
-// 	purchase_price int,
-// 	sale_price int,
-// 	stock int,
-// 	image string,
-// ) (Response, error) {
-// 	var res Response
+func CreateProduct(
+	productName string,
+	categoryID int,
+	unit string,
+	stock int,
+	brand string,
+	variants []ProductVariantAdd,
+) (Response, error) {
+	var res Response
 
-// 	con := db.CreateCon()
+	con := db.CreateCon()
 
-// 	sqlStatement := "INSERT INTO product (product_code, product_name, category_id, eceran_id, brand, purchase_price, sale_price, stock, image, created_at, updated_at) VALUES ( ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? )"
+	sqlStatement := "INSERT INTO product (product_name, category_id, unit, stock, brand, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
 
-// 	stmt, err := con.Prepare(sqlStatement)
+	stmt, err := con.Prepare(sqlStatement)
 
-// 	if err != nil {
-// 		return res, err
-// 	}
+	if err != nil {
+		return res, err
+	}
 
-// 	// Load the UTC+8 time zone
-// 	loc, err := time.LoadLocation("Asia/Shanghai")
-// 	if err != nil {
-// 		return res, err
-// 	}
+	loc, err := time.LoadLocation("Asia/Shanghai")
+	if err != nil {
+		return res, err
+	}
 
-// 	created_at := time.Now()
-// 	updated_at := time.Now()
+	createdAt := time.Now()
+	updatedAt := time.Now()
 
-// 	result, err := stmt.Exec(
-// 		product_code,
-// 		product_name,
-// 		category_id,
-// 		eceran_id,
-// 		brand,
-// 		purchase_price,
-// 		sale_price,
-// 		stock,
-// 		sold,
-// 		image,
-// 		created_at,
-// 		updated_at,
-// 	)
+	result, err := stmt.Exec(
+		productName,
+		categoryID,
+		unit,
+		stock,
+		brand,
+		createdAt,
+		updatedAt,
+	)
+	if err != nil {
+		return res, err
+	}
 
-// 	if err != nil {
-// 		return res, err
-// 	}
+	getIdLast, err := result.LastInsertId()
 
-// 	getIdLast, err := result.LastInsertId()
+	if err != nil {
+		return res, err
+	}
 
-// 	if err != nil {
-// 		return res, err
-// 	}
+	for _, variant := range variants {
+		// Insert variant data into product_variant table
+		sqlStatement := `
+			INSERT INTO product_variant 
+				(product_id, variant_name, product_variant_code, product_variant_name, product_quantity, purchase_price, sale_price, image, created_at, updated_at) 
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		`
 
-// 	res.Data = map[string]interface{}{
-// 		"getIdLast":  getIdLast,
-// 		"created_at": created_at.In(loc),
-// 	}
+		stmt, err := con.Prepare(sqlStatement)
+		if err != nil {
+			return res, err
+		}
 
-// 	return res, nil
-// }
+		result, err := stmt.Exec(
+			getIdLast,
+			variant.VariantName,
+			variant.ProductVariantCode,
+			variant.ProductVariantName,
+			variant.ProductQuantity,
+			variant.PurchasePrice,
+			variant.SalePrice,
+			variant.Image,
+			createdAt,
+			updatedAt,
+		)
+		if err != nil {
+			return res, err
+		}
+
+		_ = result
+	}
+
+	res.Data = map[string]interface{}{
+		"product_id": getIdLast,
+		"created_at": createdAt.In(loc),
+	}
+
+	return res, nil
+}
 
 // func UpdateProduct(product_id int, updateFields map[string]interface{}) (Response, error) {
 // 	var res Response
@@ -632,34 +691,34 @@ func GetProductDetail(productID int) (Response, error) {
 // 	return res, nil
 // }
 
-// func DeleteProduct(product_id int) (Response, error) {
-// 	var res Response
+func DeleteProduct(product_id int) (Response, error) {
+	var res Response
 
-// 	con := db.CreateCon()
+	con := db.CreateCon()
 
-// 	sqlStatement := "DELETE FROM product WHERE product_id = ?"
+	sqlStatement := "DELETE FROM product WHERE product_id = ?"
 
-// 	stmt, err := con.Prepare(sqlStatement)
+	stmt, err := con.Prepare(sqlStatement)
 
-// 	if err != nil {
-// 		return res, err
-// 	}
+	if err != nil {
+		return res, err
+	}
 
-// 	result, err := stmt.Exec(product_id)
+	result, err := stmt.Exec(product_id)
 
-// 	if err != nil {
-// 		return res, err
-// 	}
+	if err != nil {
+		return res, err
+	}
 
-// 	rowsAffected, err := result.RowsAffected()
-// 	if err != nil {
-// 		return res, err
-// 	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return res, err
+	}
 
-// 	res.Data = map[string]interface{}{
-// 		"rowsAffected":       rowsAffected,
-// 		"deleted_product_id": product_id,
-// 	}
+	res.Data = map[string]interface{}{
+		"rowsAffected":       rowsAffected,
+		"deleted_product_id": product_id,
+	}
 
-// 	return res, err
-// }
+	return res, err
+}

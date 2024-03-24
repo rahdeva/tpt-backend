@@ -54,6 +54,8 @@ func GetAllProducts(c echo.Context) error {
 
 	keyword := c.QueryParam("keyword")
 
+	sort := c.QueryParam("sort") // Get sorting parameter
+
 	categoryID, err := strconv.Atoi(c.QueryParam("category_id"))
 	if err != nil {
 		categoryID = 0
@@ -61,7 +63,7 @@ func GetAllProducts(c echo.Context) error {
 
 	typeName := "product" // Set the type name based on your struct
 
-	result, err := models.GetAllProducts(typeName, page, pageSize, keyword, categoryID)
+	result, err := models.GetAllProducts(typeName, page, pageSize, keyword, categoryID, sort)
 	if err != nil {
 		return c.JSON(
 			http.StatusInternalServerError,
@@ -89,42 +91,34 @@ func GetProductDetail(c echo.Context) error {
 	return c.JSON(http.StatusOK, productDetail)
 }
 
-// func CreateProduct(c echo.Context) error {
-// 	var product models.Product
+func CreateProduct(c echo.Context) error {
+	var createRequest models.CreateProductRequest
 
-// 	// Parse the request body to populate the product struct
-// 	if err := c.Bind(&product); err != nil {
-// 		return c.JSON(
-// 			http.StatusBadRequest,
-// 			map[string]string{
-// 				"error": "Invalid request body",
-// 			},
-// 		)
-// 	}
+	// Parse the request body to populate the new struct
+	if err := c.Bind(&createRequest); err != nil {
+		return c.JSON(
+			http.StatusBadRequest,
+			map[string]string{
+				"error": "Invalid request body",
+			},
+		)
+	}
 
-// 	// Call the CreateProduct function from the models package
-// 	result, err := models.CreateProduct(
-// 		product.ProductCode,
-// 		product.ProductName,
-// 		product.CategoryID,
-// 		product.EceranID,
-// 		product.Brand,
-// 		product.PurchasePrice,
-// 		product.SalePrice,
-// 		product.Stock,
-// 		product.Sold,
-// 		product.Image,
-// 	)
+	// Call CreateProduct function from models package
+	result, err := models.CreateProduct(
+		createRequest.ProductName,
+		createRequest.CategoryID,
+		createRequest.Unit,
+		createRequest.Stock,
+		createRequest.Brand,
+		createRequest.Variants,
+	)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
+	}
 
-// 	if err != nil {
-// 		return c.JSON(
-// 			http.StatusInternalServerError,
-// 			map[string]string{"message": err.Error()},
-// 		)
-// 	}
-
-// 	return c.JSON(http.StatusOK, result)
-// }
+	return c.JSON(http.StatusOK, result)
+}
 
 // func UpdateProduct(c echo.Context) error {
 // 	// Parse the request body to get the update data
@@ -163,25 +157,25 @@ func GetProductDetail(c echo.Context) error {
 // 	return c.JSON(http.StatusOK, result)
 // }
 
-// func DeleteProduct(c echo.Context) error {
-// 	product_id := c.Param("product_id")
+func DeleteProduct(c echo.Context) error {
+	product_id := c.Param("product_id")
 
-// 	conv_id, err := strconv.Atoi(product_id)
+	conv_id, err := strconv.Atoi(product_id)
 
-// 	if err != nil {
-// 		return c.JSON(
-// 			http.StatusInternalServerError,
-// 			map[string]string{"message": err.Error()},
-// 		)
-// 	}
+	if err != nil {
+		return c.JSON(
+			http.StatusInternalServerError,
+			map[string]string{"message": err.Error()},
+		)
+	}
 
-// 	result, err := models.DeleteProduct(conv_id)
-// 	if err != nil {
-// 		return c.JSON(
-// 			http.StatusInternalServerError,
-// 			map[string]string{"message": err.Error()},
-// 		)
-// 	}
+	result, err := models.DeleteProduct(conv_id)
+	if err != nil {
+		return c.JSON(
+			http.StatusInternalServerError,
+			map[string]string{"message": err.Error()},
+		)
+	}
 
-// 	return c.JSON(http.StatusOK, result)
-// }
+	return c.JSON(http.StatusOK, result)
+}
