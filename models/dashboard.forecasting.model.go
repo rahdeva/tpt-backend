@@ -24,6 +24,7 @@ type ForecastDetail struct {
 	WeekDate                []string  `json:"week_date"`
 	ActualTotalTransaction  []int     `json:"actual_total_transaction"`
 	PredictTotalTransaction []float64 `json:"predict_total_transaction"`
+	Label                   []string  `json:"label"`
 }
 
 func GetSaleForecast() (ForecastDetail, error) {
@@ -99,6 +100,8 @@ func GetSaleForecast() (ForecastDetail, error) {
 		return forecastDetail, err
 	}
 
+	forecastDetail.Label = generateLabels(forecastDetail.WeekDate)
+
 	forecastDetail.MAE = roundToTwoDecimalPlaces(forecastDetail.MAE)
 	forecastDetail.MSE = roundToTwoDecimalPlaces(forecastDetail.MSE)
 	forecastDetail.RSME = roundToTwoDecimalPlaces(forecastDetail.RSME)
@@ -159,4 +162,25 @@ func convertTimeIDToDate(timeID int) string {
 	timeStr := strconv.Itoa(timeID)
 	timeValue, _ := time.Parse(layout, timeStr)
 	return timeValue.Format("2006-01-02")
+}
+
+func generateLabels(weekDate []string) []string {
+	var labels []string
+
+	startIndex := len(weekDate) - 1
+	for i := startIndex; i >= 1; i -= 12 {
+		labels = append(labels, weekDate[i])
+	}
+
+	// Memanggil fungsi reverseSlice untuk membalikkan slice labels
+	return reverseSlice(labels)
+}
+
+// Fungsi untuk membalikkan slice
+func reverseSlice(s []string) []string {
+	for i := 0; i < len(s)/2; i++ {
+		j := len(s) - i - 1
+		s[i], s[j] = s[j], s[i]
+	}
+	return s
 }
