@@ -112,9 +112,7 @@ func Init() *echo.Echo {
 	e.GET("/api/v1/dashboard/financial/cash_out", controllers.GetCashOut)
 
 	// Dashboard Forecasting
-	e.GET("/api/v1/dashboard/forecasting/sale", controllers.GetProductByCategory)
-	e.GET("/api/v1/dashboard/forecasting/purchase", controllers.GetProductByCategory)
-	e.GET("/api/v1/dashboard/forecasting/mae", controllers.GetProductByCategory)
+	e.GET("/api/v1/dashboard/forecasting/sale", controllers.GetSaleForecast)
 
 	return e
 }
